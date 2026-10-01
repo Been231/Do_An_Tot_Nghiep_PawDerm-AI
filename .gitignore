@@ -1,0 +1,57 @@
+# =============================================
+# PawDerm AI — .gitignore (Chuẩn ĐATN)
+# =============================================
+
+# Biến môi trường bảo mật (KHÔNG commit!)
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.local
+
+# Node / Frontend Build
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Thư mục ảnh tải lên người dùng
+uploads/*
+!uploads/.gitkeep
+
+# Streamlit cache
+.streamlit/secrets.toml
+streamlit_app/.streamlit/secrets.toml
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Trọng số mô hình AI & Checkpoint lớn (KHÔNG commit!)
+*.pt
+*.onnx
+models/*.pt
+models/*.onnx
+runs/
+
+# Tập dữ liệu ảnh lớn (nên lưu trên cloud/drive hoặc nạp qua script)
+dataset/Pet_Skin_Disease_Detection.v1i.yolov8/
+dataset/Du_lieu_mau/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,517 @@
+/* ============================================================
+   PawDerm AI — Modern Warm & Cozy Pet Care Auth Styling
+   Bản thiết kế chuẩn theo Mockup: Tinh giản, ấm áp, đậm chất chó & mèo
+   ============================================================ */
+
+.auth-root-layout {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background-color: #F8F5EE;
+  background-image: 
+    radial-gradient(#E5DDD1 1.2px, transparent 1.2px),
+    radial-gradient(circle at 12% 18%, rgba(217, 119, 6, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 88% 82%, rgba(42, 157, 143, 0.05) 0%, transparent 40%);
+  background-size: 32px 32px, 100% 100%, 100% 100%;
+  position: relative;
+  overflow-x: hidden;
+  font-family: inherit;
+}
+
+/* Thẻ đăng nhập trung tâm 2 cột */
+.auth-split-card {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  max-width: 960px;
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 28px;
+  box-shadow: 0 20px 50px -15px rgba(80, 50, 25, 0.08),
+              0 0 0 1px rgba(235, 228, 218, 0.8);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   CỘT TRÁI: HÌNH ẢNH CHÓ MÈO TO RÕ & TÊN THƯƠNG HIỆU PHÍA DƯỚI
+   ============================================================ */
+.auth-hero-column {
+  background: #FAF7F2;
+  padding: 44px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  border-right: 1px solid rgba(235, 228, 218, 0.8);
+  overflow: hidden;
+}
+
+/* Họa tiết dấu chân mờ ẩn trang trí */
+.auth-hero-column::before {
+  content: '🐾';
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  font-size: 70px;
+  opacity: 0.04;
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+
+.auth-hero-column::after {
+  content: '🐾';
+  position: absolute;
+  bottom: 24px;
+  right: 28px;
+  font-size: 90px;
+  opacity: 0.04;
+  transform: rotate(25deg);
+  pointer-events: none;
+}
+
+/* Khung hình cún & mèo lớn đẹp mắt */
+.hero-mascot-showcase {
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.hero-mascot-img {
+  width: 100%;
+  height: auto;
+  max-height: 330px;
+  object-fit: contain;
+  border-radius: 22px;
+  filter: drop-shadow(0 12px 24px rgba(217, 119, 6, 0.1));
+  transition: transform 0.35s ease;
+}
+
+.hero-mascot-img:hover {
+  transform: scale(1.02);
+}
+
+/* Tên thương hiệu và slogan đặt dưới ảnh (giống ảnh mẫu) */
+.hero-brand-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.brand-logo-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-icon {
+  font-size: 26px;
+  color: #D97706;
+}
+
+.brand-name-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0F5B54;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.brand-name-text span {
+  color: #D97706;
+}
+
+.brand-slogan-text {
+  font-size: 14px;
+  color: #555B6E;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ============================================================
+   CỘT PHẢI: FORM CARD THIẾT KẾ CHUẨN MOCKUP
+   ============================================================ */
+.auth-form-column {
+  padding: 40px 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #FFFFFF;
+}
+
+/* TABS CHUYỂN ĐỔI THEO MẪU: ĐĂNG NHẬP | ĐĂNG KÝ CÓ GẠCH CHÂN */
+.mockup-tabs-bar {
+  display: flex;
+  border-bottom: 1.5px solid #EBE4DA;
+  margin-bottom: 28px;
+}
+
+.mockup-tab-item {
+  flex: 1;
+  padding: 12px 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #8D99AE;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: -1.5px;
+}
+
+.mockup-tab-item.active {
+  color: #D97706;
+  border-bottom-color: #D97706;
+}
+
+.mockup-tab-item:hover:not(.active) {
+  color: #2D3142;
+}
+
+/* CÁC Ô NHẬP LIỆU DẠNG PILL BO TRÒN THEO MOCKUP */
+.input-wrapper-pill {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8D99AE;
+  pointer-events: none;
+}
+
+.clean-input-pill {
+  width: 100%;
+  padding: 13px 20px 13px 48px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: #2D3142;
+  background: #FAF7F2;
+  border: 1px solid #EBE4DA;
+  border-radius: 30px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.clean-input-pill:focus {
+  outline: none;
+  background: #FFFFFF;
+  border-color: #D97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
+.clean-input-pill::placeholder {
+  color: #8D99AE;
+}
+
+.clean-input-pill.no-icon {
+  padding-left: 20px;
+}
+
+.clean-select-pill {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.input-toggle-eye {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #8D99AE;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.input-toggle-eye:hover {
+  color: #2D3142;
+}
+
+/* HÀNG GHI NHỚ VÀ QUÊN MẬT KHẨU */
+.login-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #555B6E;
+  margin-bottom: 22px;
+}
+
+.remember-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.remember-check-label input {
+  accent-color: #D97706;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.forgot-pwd-link {
+  color: #8D99AE;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.forgot-pwd-link:hover {
+  color: #D97706;
+}
+
+/* NÚT ĐĂNG NHẬP CHÍNH MÀU HỔ PHÁCH BO TRÒN */
+.btn-primary-pill {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #D97706 0%, #E07A5F 100%);
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -4px rgba(217, 119, 6, 0.35);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary-pill:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(217, 119, 6, 0.45);
+  background: linear-gradient(135deg, #E28414 0%, #E6856C 100%);
+}
+
+.btn-primary-pill:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* DÃY ICON MẠNG XÃ HỘI (GOOGLE, APPLE, FACEBOOK) CHUẨN MOCKUP */
+.social-login-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 22px 0 16px 0;
+}
+
+.btn-social-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #EBE4DA;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-social-circle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  border-color: #D97706;
+}
+
+.social-svg-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* LIÊN KẾT CHUYỂN NHANH ĐĂNG NHẬP / ĐĂNG KÝ */
+.auth-switch-prompt {
+  text-align: center;
+  font-size: 13.5px;
+  color: #555B6E;
+  margin-bottom: 24px;
+}
+
+.auth-switch-btn {
+  background: none;
+  border: none;
+  color: #D97706;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: inherit;
+}
+
+.auth-switch-btn:hover {
+  color: #B45309;
+}
+
+/* DÃY NÚT ĐĂNG NHẬP NHANH CHO HỘI ĐỒNG PHẢN BIỆN (DƯỚI CÙNG) */
+.quick-roles-tray {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px dashed #EBE4DA;
+}
+
+.btn-tray-pill {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-tray-pill:hover {
+  transform: translateY(-2px);
+}
+
+.btn-tray-pill.admin {
+  background: #D5ECE8;
+  color: #17655E;
+  border-color: #B8DFD9;
+}
+
+.btn-tray-pill.admin:hover {
+  background: #C4E6E1;
+  box-shadow: 0 3px 8px rgba(23, 101, 94, 0.2);
+}
+
+.btn-tray-pill.doctor {
+  background: #C8E8E3;
+  color: #15625A;
+  border-color: #A9DCD5;
+}
+
+.btn-tray-pill.doctor:hover {
+  background: #B6E1DA;
+  box-shadow: 0 3px 8px rgba(21, 98, 90, 0.2);
+}
+
+.btn-tray-pill.customer {
+  background: #F8D7C6;
+  color: #9C3D1E;
+  border-color: #F1BCA3;
+}
+
+.btn-tray-pill.customer:hover {
+  background: #F4C7AF;
+  box-shadow: 0 3px 8px rgba(156, 61, 30, 0.2);
+}
+
+/* KHUNG THÔNG TIN BÉ CƯNG TRONG FORM ĐĂNG KÝ */
+.pet-info-card-box {
+  background: #FFF9F5;
+  border: 1.5px dashed #F1BCA3;
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.pet-info-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #C85A3D;
+  margin-bottom: 10px;
+}
+
+/* THÔNG BÁO ALERT LỖI VÀ THÀNH CÔNG */
+.auth-alert-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.auth-alert-message.error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+}
+
+.auth-alert-message.success {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #16A34A;
+}
+
+/* ============================================================
+   RESPONSIVE CHO MOBILE & TABLET
+   ============================================================ */
+@media (max-width: 860px) {
+  .auth-split-card {
+    grid-template-columns: 1fr;
+    border-radius: 22px;
+  }
+
+  .auth-hero-column {
+    padding: 32px 20px;
+    border-right: none;
+    border-bottom: 1px solid rgba(235, 228, 218, 0.8);
+  }
+
+  .hero-mascot-showcase {
+    max-width: 240px;
+  }
+
+  .auth-form-column {
+    padding: 32px 20px;
+  }
+
+  .form-split-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,4 @@
+# PawDerm AI - Root Dependencies
+# Cài đặt toàn bộ thư viện cho Backend API và Streamlit Demo
+-r backend/requirements.txt
+streamlit>=1.30.0
