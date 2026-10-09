@@ -139,9 +139,24 @@ streamlit run streamlit_app/app.py
 
 ---
 
-## 🌟 6. Tiến Trình Phát Triển & Tính Năng Nâng Cấp (Changelog & Roadmap)
+---
 
-Dự án đã hoàn thành nâng cấp toàn diện theo lộ trình chuẩn đồ án tốt nghiệp:
+## 📅 5. Nhật Ký Tiến Độ Cập Nhật Theo Tuần (Weekly Progress Log)
+
+> *Bảng tổng hợp tiến độ thực hiện đồ án phục vụ báo cáo định kỳ với Giảng viên hướng dẫn:*
+
+| Mốc thời gian | Hạng mục công việc đã thực hiện | Chi tiết thay đổi & tính năng mới | Trạng thái |
+| :---: | :--- | :--- | :---: |
+| **Đợt 1 (Khởi tạo)** | Kiến trúc & Phân hệ nền tảng | Thiết lập FastAPI Gateway, React SPA, CSDL Supabase, Lõi suy luận AI YOLOv8. | ✅ Hoàn thành |
+| **Tuần này (Đợt 2)** | **Xác thực Gmail OTP & Bảo mật** | - Tích hợp gửi mã OTP 6 số xác thực Gmail thật qua **Google SMTP (STARTTLS 587)**.<br>- Xác thực Gmail tồn tại thực tế trên máy chủ Google trước khi cho phép đăng ký.<br>- Mã hóa toàn bộ mật khẩu bằng **Bcrypt** có salt ngẫu nhiên.<br>- Chuẩn hóa ô SĐT 10 số, cảnh báo động `Số điện thoại tối đa 10 số`.<br>- Tinh chỉnh giao diện Modal Đăng ký/Đăng nhập chống tràn màn hình, nút đóng nổi bật. | ✅ Hoàn thành |
+| **Tuần này (Đợt 2)** | **Trang Hồ sơ cá nhân & Đổi mật khẩu** | - Thêm menu **Hồ sơ cá nhân** trong dropdown tài khoản người dùng.<br>- Cho phép cập nhật họ tên, SĐT, địa chỉ với xác thực dữ liệu chặt chẽ.<br>- Thêm tính năng **Đổi mật khẩu bảo mật** (xác minh mật khẩu hiện tại + thanh đo độ mạnh mật khẩu trực quan). | ✅ Hoàn thành |
+| **Tuần này (Đợt 2)** | **Lịch sử Chi tiết & Phân trang** | - Thêm **Modal Chi tiết Ca bệnh** khi bấm vào từng hàng lịch sử (xem lại ảnh tổn thương phóng to, chẩn đoán AI, phân bố xác suất từng bệnh, ghi chú theo dõi, nhận định bác sĩ).<br>- Tích hợp **Phân trang linh hoạt (5 / 10 / 20 ca mỗi trang)**.<br>- Thêm thanh tìm kiếm tức thì theo tên thú cưng/tên bệnh và lọc theo trạng thái thẩm định. | ✅ Hoàn thành |
+| **Tuần này (Đợt 2)** | **Biểu đồ Tiến triển Bệnh (Recharts)** | - Tích hợp thư viện `recharts` vẽ **Biểu đồ đường (Line Chart)** trực quan.<br>- Theo dõi độ tin cậy AI và diễn biến vùng da qua các mốc thời gian (Ngày 1 ➔ Ngày 3 ➔ Ngày 7 ➔ Ngày 14).<br>- Tự động tách đường biểu diễn cho từng bé cưng, tooltip chi tiết và đường trung bình tham chiếu. | ✅ Hoàn thành |
+| **Tuần tới (Đợt 3)** | Tính năng nâng cao tiếp theo | - Tích hợp chụp ảnh trực tiếp qua camera thiết bị (`getUserMedia`).<br>- Xuất file PDF bệnh án điện tử.<br>- Active Learning auto-trigger pipeline khi đủ ca bác sĩ đính chính. | ⏳ Lên kế hoạch |
+
+---
+
+## 🌟 6. Chi Tiết Kỹ Thuật Các Tính Năng Nâng Cấp (Changelog Chi Tiết)
 
 ### 🔐 6.1. Xác thực & Bảo mật (Security & Verification)
 * **Xác thực Gmail thật qua Google SMTP:** Đăng ký tài khoản Chủ nuôi bắt buộc xác thực mã OTP 6 số gửi trực tiếp vào hộp thư Google (`smtp.gmail.com:587 STARTTLS`). Ngăn chặn hoàn toàn tài khoản ảo hoặc email không tồn tại.
