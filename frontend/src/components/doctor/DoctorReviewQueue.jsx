@@ -44,7 +44,7 @@ export default function DoctorReviewQueue({
                   </span>
                 </div>
                 <div className="pet-brief">
-                  {item.patient_info?.species} • {item.patient_info?.breed}
+                  {item.patient_info?.species || 'Thú cưng'}{item.patient_info?.breed ? ` • ${item.patient_info.breed}` : ''}
                 </div>
                 <div className="ai-brief">
                   AI đoán: <strong>{item.ai_diagnosis?.disease_name_vi}</strong> ({item.ai_diagnosis?.confidence}%)

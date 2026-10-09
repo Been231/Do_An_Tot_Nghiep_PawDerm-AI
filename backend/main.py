@@ -8,6 +8,7 @@ PawDerm AI - REST API Server (FastAPI Clean Architecture)
   5. Admin Router: /api/admin
 """
 
+import os
 import sys
 from pathlib import Path
 from fastapi import FastAPI
@@ -24,7 +25,8 @@ from app.routers import (
     pets as pets_module,
     diagnosis as diagnosis_module,
     doctor as doctor_module,
-    admin as admin_module
+    admin as admin_module,
+    notifications as notifications_module
 )
 
 app = FastAPI(
@@ -33,13 +35,22 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Cấu hình CORS để Frontend React (Vite: localhost:5173) gọi mượt mà
+# Cấu hình CORS: chỉ cho phép các domain Frontend tin cậy
+# Thêm domain deploy thực tế qua biến môi trường ALLOWED_ORIGINS (phân cách bằng dấu phẩy)
+DEFAULT_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
+]
+extra_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=DEFAULT_ORIGINS + extra_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # -----------------------------------------------------------------------------
@@ -50,6 +61,7 @@ app.include_router(pets_module.router)
 app.include_router(diagnosis_module.router)
 app.include_router(doctor_module.router)
 app.include_router(admin_module.router)
+app.include_router(notifications_module.router)
 
 
 @app.get("/api/health", tags=["Health"])

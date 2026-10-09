@@ -18,9 +18,27 @@ export default function DiagnosisTab({
   const fileInputRef = useRef(null);
   const [selectedSpecies, setSelectedSpecies] = useState('dog');
 
-  const selectedPet = pets?.find(p => p.id === selectedPetId) || pets?.[0] || {
-    name: 'Milo',
-    species: 'Cún Cưng'
+  // Lọc danh sách thú cưng theo loài
+  const filteredPets = pets.filter(p => {
+    if (selectedSpecies === 'dog') return !p.species || p.species.includes('Chó') || p.species.includes('🐶');
+    if (selectedSpecies === 'cat') return p.species?.includes('Mèo') || p.species?.includes('🐱');
+    return true;
+  });
+
+  const selectedPet = pets?.find(p => p.id === selectedPetId) 
+    || filteredPets[0] 
+    || pets?.[0] 
+    || { name: 'Bé cưng', species: selectedSpecies === 'cat' ? 'Mèo 🐱' : 'Chó 🐶' };
+
+  const handleSelectSpecies = (species) => {
+    setSelectedSpecies(species);
+    // Tự động chuyển selectedPet sang bé đầu tiên của loài đó nếu có
+    const match = pets.find(p => {
+      if (species === 'dog') return !p.species || p.species.includes('Chó') || p.species.includes('🐶');
+      if (species === 'cat') return p.species?.includes('Mèo') || p.species?.includes('🐱');
+      return true;
+    });
+    if (match) setSelectedPetId(match.id);
   };
 
   const SYMPTOMS_LIST = [
@@ -45,39 +63,52 @@ export default function DiagnosisTab({
         {/* THẺ 1: CHỌN THÚ CƯNG */}
         <div className="card pet-select-card">
           <div className="card-header-clean">
-            <h3 className="card-title-plain">Chọn thú cưng</h3>
+            <h3 className="card-title-plain">Chọn thú cưng khám bệnh</h3>
           </div>
           <div className="pet-select-clean-row">
             <div className="species-pills-group">
               <button
                 type="button"
                 className={`species-clean-pill ${selectedSpecies === 'dog' ? 'active' : ''}`}
-                onClick={() => setSelectedSpecies('dog')}
+                onClick={() => handleSelectSpecies('dog')}
               >
-                🐶 Cún
+                🐶 Cún ({pets.filter(p => !p.species || p.species.includes('Chó') || p.species.includes('🐶')).length})
               </button>
               <button
                 type="button"
                 className={`species-clean-pill ${selectedSpecies === 'cat' ? 'active' : ''}`}
-                onClick={() => setSelectedSpecies('cat')}
+                onClick={() => handleSelectSpecies('cat')}
               >
-                🐱 Mèo
+                🐱 Mèo ({pets.filter(p => p.species?.includes('Mèo') || p.species?.includes('🐱')).length})
               </button>
             </div>
 
-            {/* Thẻ thú cưng đang chọn */}
-            <div 
-              className="pet-current-pill" 
-              onClick={onOpenAddPetModal}
-              title="Nhấn để đổi hoặc thêm bé mới"
-            >
-              <div className="pet-avatar-circle-sm">
-                {selectedPet.avatar || (selectedSpecies === 'cat' ? '🐱' : '🐶')}
+            {/* Chọn bé cưng cụ thể trong danh sách */}
+            {filteredPets.length > 0 ? (
+              <div className="pet-selector-dropdown-wrap">
+                <select
+                  className="clean-select-pill pet-select-dropdown"
+                  value={selectedPet?.id || ''}
+                  onChange={(e) => setSelectedPetId(e.target.value)}
+                  title="Chọn bé cưng"
+                >
+                  {filteredPets.map(p => (
+                    <option key={p.id} value={p.id}>
+                      🐾 {p.name} - {p.species || 'Chó cưng'} {p.weight ? `(${p.weight})` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <span className="pet-pill-title">
-                {selectedPet.name} - {selectedPet.species || (selectedSpecies === 'cat' ? 'Mèo Cưng' : 'Cún Cưng')}
-              </span>
-            </div>
+            ) : (
+              <button 
+                type="button"
+                className="pet-current-pill empty" 
+                onClick={onOpenAddPetModal}
+                title="Thêm bé cưng thuộc loài này"
+              >
+                <span className="pet-pill-title">+ Thêm bé {selectedSpecies === 'cat' ? 'mèo' : 'cún'} mới</span>
+              </button>
+            )}
           </div>
         </div>
 

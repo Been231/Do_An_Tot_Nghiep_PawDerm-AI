@@ -139,5 +139,33 @@ streamlit run streamlit_app/app.py
 
 ---
 
-## 🩺 5. Lưu ý Y khoa (Medical Disclaimer)
+## 🌟 6. Tiến Trình Phát Triển & Tính Năng Nâng Cấp (Changelog & Roadmap)
+
+Dự án đã hoàn thành nâng cấp toàn diện theo lộ trình chuẩn đồ án tốt nghiệp:
+
+### 🔐 6.1. Xác thực & Bảo mật (Security & Verification)
+* **Xác thực Gmail thật qua Google SMTP:** Đăng ký tài khoản Chủ nuôi bắt buộc xác thực mã OTP 6 số gửi trực tiếp vào hộp thư Google (`smtp.gmail.com:587 STARTTLS`). Ngăn chặn hoàn toàn tài khoản ảo hoặc email không tồn tại.
+* **Bảo mật mật khẩu với Bcrypt:** Toàn bộ mật khẩu người dùng được băm (hash) bằng thư viện `bcrypt` với muối (salt) ngẫu nhiên trước khi lưu trữ, loại bỏ hoàn toàn lưu mật khẩu dạng plaintext.
+* **CORS & Bảo vệ API:** Giới hạn whitelist các domain được phép truy cập, loại bỏ `allow_origins=["*"]`.
+* **Phân quyền chặt chẽ:** Ẩn bộ switcher xem trước vai trò trên Header đối với người dùng thông thường, chỉ hiển thị với Quản trị viên thực tế.
+
+### 👤 6.2. Hồ sơ cá nhân & Đổi mật khẩu (Profile & Password Modal)
+* **Chỉnh sửa hồ sơ:** Cho phép cập nhật họ và tên, số điện thoại chuẩn 10 chữ số, địa chỉ liên hệ.
+* **Đổi mật khẩu an toàn:** Yêu cầu xác minh chính xác mật khẩu hiện tại trước khi đổi, tích hợp thước đo độ mạnh mật khẩu (Password Strength Bar) trực quan.
+
+### 📜 6.3. Lịch sử Chẩn đoán Thông minh & Phân trang (History & Pagination)
+* **Bộ lọc & Tìm kiếm:** Tìm kiếm tức thì theo tên thú cưng hoặc tên bệnh da liễu; lọc theo trạng thái thẩm định *(Chờ duyệt / Bác sĩ đồng ý / Bác sĩ sửa lại)*.
+* **Phân trang linh hoạt (Pagination):** Tùy chọn 5, 10 hoặc 20 ca bệnh mỗi trang, điều hướng trang gọn gàng.
+* **Modal Chi tiết Ca bệnh (Case Detail Modal):** Bấm vào bất kỳ dòng nào để mở modal xem lại ảnh tổn thương độ phân giải cao, độ tin cậy AI, phân bố xác suất các bệnh liên quan, ghi chú theo dõi của chủ nuôi và nhận định chuyên môn của Bác sĩ.
+
+### 📈 6.4. Biểu đồ Đường Tiến triển Bệnh (Progression Line Chart)
+* **Tích hợp thư viện Recharts:** Vẽ biểu đồ đường thể hiện mức độ thuyên giảm bệnh và độ tin cậy AI qua các mốc thời gian thực tế *(Ngày 1 ➔ Ngày 3 ➔ Ngày 7 ➔ Ngày 14)*.
+* **Đa thú cưng:** Tự động vẽ riêng biệt từng đường cho từng bé cưng, có đường trung bình tham chiếu và tooltip chi tiết khi di chuột.
+
+### 🔔 6.5. Chuông Thông báo Thời gian thực (Real-time Notification Bell)
+* Tự động kiểm tra và thông báo cho Chủ nuôi ngay khi Bác sĩ hoàn tất thẩm định hồ sơ bệnh án hoặc đính chính chẩn đoán.
+
+---
+
+## 🩺 7. Lưu ý Y khoa (Medical Disclaimer)
 Kết quả từ hệ thống AI mang tính chất hỗ trợ chẩn đoán sơ bộ ban đầu giúp chủ nuôi phát hiện sớm nguy cơ. Chủ nuôi cần đưa thú cưng đến các phòng khám hoặc bệnh viện thú y uy tín để được xét nghiệm chuyên sâu và tiếp nhận phác đồ điều trị chính thức từ bác sĩ thú y.

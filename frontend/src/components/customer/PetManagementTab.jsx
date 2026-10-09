@@ -12,7 +12,7 @@ export default function PetManagementTab({
       <div className="flex-between mb-4">
         <div>
           <h2>🐾 Danh Sách Hồ Sơ Thú Cưng Của Bạn</h2>
-          <p className="card-subtitle">Quản lý giống loài, tuổi và tình trạng sức khỏe của từng bé</p>
+          <p className="card-subtitle">Quản lý cân nặng và tình trạng sức khỏe của từng bé</p>
         </div>
         <button className="btn-primary-gradient" onClick={onOpenAddPetModal}>
           <Plus size={16} /> Thêm Thú Cưng Mới
@@ -26,7 +26,7 @@ export default function PetManagementTab({
               <div className="pet-avatar-large">{p.avatar || (p.species?.includes('Mèo') ? '🐱' : '🐶')}</div>
               <div className="pet-main-info">
                 <h3 className="pet-name">{p.name}</h3>
-                <span className="pet-species-tag">{p.species} • {p.breed || 'Chưa rõ giống'}</span>
+                <span className="pet-species-tag">{p.species || 'Thú cưng'}</span>
               </div>
               <button 
                 className="btn-icon-delete" 
@@ -38,10 +38,6 @@ export default function PetManagementTab({
             </div>
 
             <div className="pet-attributes-grid mt-3">
-              <div className="attr-cell">
-                <span className="attr-label">Tuổi</span>
-                <strong className="attr-val">{p.age || '1 tuổi'}</strong>
-              </div>
               <div className="attr-cell">
                 <span className="attr-label">Cân nặng</span>
                 <strong className="attr-val">{p.weight || 'Chưa cân'}</strong>

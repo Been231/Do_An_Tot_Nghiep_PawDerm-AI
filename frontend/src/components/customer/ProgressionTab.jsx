@@ -1,5 +1,7 @@
 import React from 'react';
 import { Activity, Stethoscope } from 'lucide-react';
+import ProgressionChart from './ProgressionChart';
+import '../../styles/profileHistory.css';
 
 export default function ProgressionTab({
   pets,
@@ -45,6 +47,10 @@ export default function ProgressionTab({
           </button>
         </div>
       ) : (
+        <>
+        {/* BIỂU ĐỒ ĐƯỜNG ĐỘ TIN CẬY AI THEO MỐC NGÀY */}
+        <ProgressionChart records={progressionRecords} />
+
         <div className="progression-timeline">
           {progressionRecords.map((item, idx) => (
             <div key={item.id || idx} className="progression-card card">
@@ -95,6 +101,7 @@ export default function ProgressionTab({
             </div>
           ))}
         </div>
+        </>
       )}
     </div>
   );

@@ -7,4 +7,5 @@ export * from './petService';
 export * from './diagnosisService';
 export * from './doctorService';
 export * from './adminService';
+export * from './notificationService';
 export * from './api';

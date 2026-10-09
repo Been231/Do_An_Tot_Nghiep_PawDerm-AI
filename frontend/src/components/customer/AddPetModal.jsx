@@ -8,10 +8,6 @@ export default function AddPetModal({
   setPetName,
   species,
   setSpecies,
-  breed,
-  setBreed,
-  age,
-  setAge,
   weight,
   setWeight,
   notes,
@@ -53,34 +49,11 @@ export default function AddPetModal({
               </select>
             </div>
             <div className="form-group">
-              <label className="input-label">Giống loài:</label>
-              <input 
-                type="text" 
-                className="custom-input" 
-                placeholder="Poodle, Corgi, Anh lông ngắn..." 
-                value={breed} 
-                onChange={(e) => setBreed(e.target.value)} 
-              />
-            </div>
-          </div>
-
-          <div className="form-row-2 mb-3">
-            <div className="form-group">
-              <label className="input-label">Độ tuổi:</label>
-              <input 
-                type="text" 
-                className="custom-input" 
-                placeholder="Ví dụ: 1.5 tuổi, 6 tháng..." 
-                value={age} 
-                onChange={(e) => setAge(e.target.value)} 
-              />
-            </div>
-            <div className="form-group">
               <label className="input-label">Cân nặng:</label>
               <input 
                 type="text" 
                 className="custom-input" 
-                placeholder="Ví dụ: 4.5 kg..." 
+                placeholder="Ví dụ: 4.5 kg, 12 kg..." 
                 value={weight} 
                 onChange={(e) => setWeight(e.target.value)} 
               />
@@ -91,7 +64,7 @@ export default function AddPetModal({
             <label className="input-label">Tiền sử dị ứng / Ghi chú:</label>
             <textarea 
               className="custom-textarea" 
-              rows="2"
+              rows="3"
               placeholder="Ví dụ: Dị ứng thức ăn có thịt bò, đã tiêm ngừa dại..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

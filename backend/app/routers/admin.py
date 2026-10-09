@@ -2,6 +2,7 @@
 PawDerm AI - Admin Management & Retrain Dataset Router
 """
 
+from datetime import datetime
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Query, Body
 from app.database.supabase_service import SupabaseService
@@ -77,7 +78,7 @@ def export_dataset_for_retrain():
         })
 
     return {
-        "export_date": "2026-03-18",
+        "export_date": datetime.now().isoformat(timespec="seconds"),
         "total_samples": len(retrain_samples),
         "hard_cases_count": sum(1 for s in retrain_samples if s["is_hard_sample"]),
         "dataset": retrain_samples

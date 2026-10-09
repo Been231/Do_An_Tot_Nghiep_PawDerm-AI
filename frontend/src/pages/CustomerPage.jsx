@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Sparkles, Heart, Clock, Activity } from 'lucide-react';
+import { Home, Sparkles, Heart, Clock, Activity, LogIn, UserPlus } from 'lucide-react';
 import { petService } from '../services/petService';
 import { diagnosisService } from '../services/diagnosisService';
 
@@ -10,7 +10,25 @@ import PetManagementTab from '../components/customer/PetManagementTab';
 import HistoryTab from '../components/customer/HistoryTab';
 import AddPetModal from '../components/customer/AddPetModal';
 
-export default function CustomerPage({ currentUser }) {
+function GuestPromptCard({ title, desc, onRequireAuth }) {
+  return (
+    <div className="guest-feature-lock-card animate-fadeIn">
+      <div className="guest-lock-art">🐾🔐</div>
+      <h3 className="guest-lock-title">{title}</h3>
+      <p className="guest-lock-desc">{desc}</p>
+      <div className="guest-lock-btns">
+        <button type="button" className="ht-btn-primary" onClick={() => onRequireAuth?.('login')}>
+          <LogIn size={16} /> Đăng nhập ngay
+        </button>
+        <button type="button" className="ht-btn-ghost" onClick={() => onRequireAuth?.('register')}>
+          <UserPlus size={16} /> Đăng ký tài khoản mới (Gmail OTP)
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function CustomerPage({ currentUser, onRequireAuth }) {
   const [activeSubTab, setActiveSubTab] = useState('home'); // 'home' | 'diagnose' | 'progression' | 'pets' | 'history'
   
   // State quản lý thú cưng
@@ -22,8 +40,6 @@ export default function CustomerPage({ currentUser }) {
   const [showAddPetModal, setShowAddPetModal] = useState(false);
   const [newPetName, setNewPetName] = useState('');
   const [newPetSpecies, setNewPetSpecies] = useState('Chó 🐶');
-  const [newPetBreed, setNewPetBreed] = useState('');
-  const [newPetAge, setNewPetAge] = useState('1.5 tuổi');
   const [newPetWeight, setNewPetWeight] = useState('4.5 kg');
   const [newPetNotes, setNewPetNotes] = useState('');
 
@@ -45,10 +61,14 @@ export default function CustomerPage({ currentUser }) {
     if (currentUser?.id) {
       loadPets();
       loadHistory();
+    } else {
+      setPets([]);
+      setHistoryRecords([]);
     }
   }, [currentUser]);
 
   const loadPets = async () => {
+    if (!currentUser?.id) return;
     setLoadingPets(true);
     try {
       const data = await petService.getPets(currentUser.id);
@@ -64,6 +84,7 @@ export default function CustomerPage({ currentUser }) {
   };
 
   const loadHistory = async () => {
+    if (!currentUser?.id) return;
     try {
       const data = await diagnosisService.getHistory(currentUser.id);
       setHistoryRecords(data || []);
@@ -74,15 +95,20 @@ export default function CustomerPage({ currentUser }) {
 
   const handleAddPet = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      setShowAddPetModal(false);
+      onRequireAuth?.('login');
+      return;
+    }
     if (!newPetName.trim()) return;
     try {
       const res = await petService.createPet(currentUser.id, {
-        name: newPetName,
+        name: newPetName.trim(),
         species: newPetSpecies,
-        breed: newPetBreed || 'Chưa rõ',
-        age: newPetAge,
-        weight: newPetWeight,
-        notes: newPetNotes
+        breed: '',
+        age: '',
+        weight: newPetWeight.trim() || 'Chưa rõ cân nặng',
+        notes: newPetNotes.trim()
       });
       if (res.pet) {
         setPets([res.pet, ...pets]);
@@ -90,7 +116,7 @@ export default function CustomerPage({ currentUser }) {
       }
       setShowAddPetModal(false);
       setNewPetName('');
-      setNewPetBreed('');
+      setNewPetWeight('4.5 kg');
       setNewPetNotes('');
     } catch (err) {
       alert('Lỗi tạo thú cưng: ' + err.message);
@@ -142,6 +168,12 @@ export default function CustomerPage({ currentUser }) {
   };
 
   const handleRunDiagnosis = async () => {
+    if (!currentUser) {
+      setDiagError('Vui lòng đăng nhập để thực hiện phân tích và lưu kết quả vào bệnh án bé cưng!');
+      onRequireAuth?.('login');
+      return;
+    }
+
     if (!imageFile) {
       setDiagError('Vui lòng tải lên hoặc chụp ảnh vùng da tổn thương của thú cưng!');
       return;
@@ -182,6 +214,14 @@ export default function CustomerPage({ currentUser }) {
       setSelectedPetId(petId);
     }
     setActiveSubTab('diagnose');
+  };
+
+  const handleOpenAddPet = () => {
+    if (!currentUser) {
+      onRequireAuth?.('login');
+    } else {
+      setShowAddPetModal(true);
+    }
   };
 
   return (
@@ -232,9 +272,10 @@ export default function CustomerPage({ currentUser }) {
           pets={pets}
           historyRecords={historyRecords}
           onStartDiagnose={handleStartDiagnose}
-          onOpenAddPetModal={() => setShowAddPetModal(true)}
+          onOpenAddPetModal={handleOpenAddPet}
           onGoToPets={() => setActiveSubTab('pets')}
           onGoToProgression={() => setActiveSubTab('progression')}
+          onRequireAuth={onRequireAuth}
         />
       )}
 
@@ -244,7 +285,7 @@ export default function CustomerPage({ currentUser }) {
           pets={pets}
           selectedPetId={selectedPetId}
           setSelectedPetId={setSelectedPetId}
-          onOpenAddPetModal={() => setShowAddPetModal(true)}
+          onOpenAddPetModal={handleOpenAddPet}
           dayNumber={dayNumber}
           setDayNumber={setDayNumber}
           selectedSymptoms={selectedSymptoms}
@@ -262,54 +303,76 @@ export default function CustomerPage({ currentUser }) {
 
       {/* TAB 2: TIẾN TRIỂN THEO NGÀY */}
       {activeSubTab === 'progression' && (
-        <ProgressionTab
-          pets={pets}
-          selectedProgressionPet={selectedProgressionPet}
-          setSelectedProgressionPet={setSelectedProgressionPet}
-          progressionRecords={progressionRecords}
-          onGoToDiagnose={() => setActiveSubTab('diagnose')}
-        />
+        !currentUser ? (
+          <GuestPromptCard
+            title="Theo Dõi Tiến Triển Hồi Phục Bệnh Da"
+            desc="Đăng nhập để theo dõi sự cải thiện của vùng da tổn thương qua các ngày (Ngày 1, Ngày 7, Ngày 14...) và nhận phác đồ điều chỉnh từ bác sĩ thú y."
+            onRequireAuth={onRequireAuth}
+          />
+        ) : (
+          <ProgressionTab
+            pets={pets}
+            selectedProgressionPet={selectedProgressionPet}
+            setSelectedProgressionPet={setSelectedProgressionPet}
+            progressionRecords={progressionRecords}
+            onGoToDiagnose={() => setActiveSubTab('diagnose')}
+          />
+        )
       )}
 
       {/* TAB 3: HỒ SƠ THÚ CƯNG */}
       {activeSubTab === 'pets' && (
-        <PetManagementTab
-          pets={pets}
-          onOpenAddPetModal={() => setShowAddPetModal(true)}
-          handleDeletePet={handleDeletePet}
-          onSelectPetToDiagnose={(id) => {
-            setSelectedPetId(id);
-            setActiveSubTab('diagnose');
-          }}
-        />
+        !currentUser ? (
+          <GuestPromptCard
+            title="Quản Lý Hồ Sơ Thú Cưng Cá Nhân"
+            desc="Đăng nhập để thêm danh sách chó mèo của bạn, ghi chú cân nặng, chủng loài và theo dõi lịch sử bệnh án chi tiết."
+            onRequireAuth={onRequireAuth}
+          />
+        ) : (
+          <PetManagementTab
+            pets={pets}
+            onOpenAddPetModal={() => setShowAddPetModal(true)}
+            handleDeletePet={handleDeletePet}
+            onSelectPetToDiagnose={(id) => {
+              setSelectedPetId(id);
+              setActiveSubTab('diagnose');
+            }}
+          />
+        )
       )}
 
       {/* TAB 4: LỊCH SỬ CHẨN ĐOÁN */}
       {activeSubTab === 'history' && (
-        <HistoryTab
-          historyRecords={historyRecords}
-          loadHistory={loadHistory}
-        />
+        !currentUser ? (
+          <GuestPromptCard
+            title="Lịch Sử Chẩn Đoán & Ý Kiến Bác Sĩ"
+            desc="Đăng nhập để xem lại toàn bộ các lần quét bệnh bằng AI, kết quả thẩm định và đơn thuốc hướng dẫn từ bác sĩ thú y."
+            onRequireAuth={onRequireAuth}
+          />
+        ) : (
+          <HistoryTab
+            historyRecords={historyRecords}
+            loadHistory={loadHistory}
+          />
+        )
       )}
 
       {/* MODAL THÊM THÚ CƯNG MỚI */}
-      <AddPetModal
-        show={showAddPetModal}
-        onClose={() => setShowAddPetModal(false)}
-        onSubmit={handleAddPet}
-        petName={newPetName}
-        setPetName={setNewPetName}
-        species={newPetSpecies}
-        setSpecies={setNewPetSpecies}
-        breed={newPetBreed}
-        setBreed={setNewPetBreed}
-        age={newPetAge}
-        setAge={setNewPetAge}
-        weight={newPetWeight}
-        setWeight={setNewPetWeight}
-        notes={newPetNotes}
-        setNotes={setNewPetNotes}
-      />
+      {currentUser && (
+        <AddPetModal
+          show={showAddPetModal}
+          onClose={() => setShowAddPetModal(false)}
+          onSubmit={handleAddPet}
+          petName={newPetName}
+          setPetName={setNewPetName}
+          species={newPetSpecies}
+          setSpecies={setNewPetSpecies}
+          weight={newPetWeight}
+          setWeight={setNewPetWeight}
+          notes={newPetNotes}
+          setNotes={setNewPetNotes}
+        />
+      )}
     </div>
   );
 }

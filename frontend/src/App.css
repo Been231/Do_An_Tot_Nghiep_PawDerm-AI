@@ -1290,7 +1290,7 @@
 
 .pet-attributes-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   background: var(--bg-subtle);
   padding: 10px;
@@ -3061,5 +3061,488 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+
+
+/* ============================================================
+   HOME TAB REDESIGN — ht-* component styles
+   ============================================================ */
+
+@keyframes ht-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes ht-float-alt { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes ht-fadeSlideUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ht-blob-drift { 0%, 100% { transform: scale(1) translate(0, 0); } 33% { transform: scale(1.08) translate(20px,-10px); } 66% { transform: scale(0.95) translate(-10px,15px); } }
+@keyframes ht-spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.ht-root { display: flex; flex-direction: column; gap: 20px; animation: ht-fadeSlideUp 0.5s ease both; }
+
+.ht-hero { position: relative; overflow: hidden; background: linear-gradient(135deg, #1c0a00 0%, #7c2d12 35%, #0f4c41 100%); border-radius: 28px; padding: 48px 44px; display: flex; justify-content: space-between; align-items: center; gap: 32px; min-height: 280px; box-shadow: 0 20px 60px rgba(124,45,18,0.35); }
+.ht-blob { position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; opacity: 0.55; animation: ht-blob-drift 8s ease-in-out infinite; }
+.ht-blob-1 { width: 300px; height: 300px; background: #ea580c; top: -80px; left: -80px; }
+.ht-blob-2 { width: 240px; height: 240px; background: #0d9488; bottom: -60px; right: 120px; animation-delay: -3s; }
+.ht-blob-3 { width: 180px; height: 180px; background: #f97316; top: 20px; right: 0; animation-delay: -5s; }
+.ht-ring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.08); pointer-events: none; }
+.ht-ring-1 { width: 380px; height: 380px; top: -120px; left: -120px; animation: ht-spin-slow 30s linear infinite; }
+.ht-ring-2 { width: 260px; height: 260px; bottom: -80px; right: 200px; animation: ht-spin-slow 20s linear infinite reverse; }
+.ht-hero-left { position: relative; z-index: 3; max-width: 600px; }
+.ht-greeting-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.14); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 9999px; font-size: 13px; font-weight: 700; color: #fef9f5; margin-bottom: 18px; }
+.ht-sparkle { color: #fde68a; }
+.ht-hero-title { font-size: 36px; font-weight: 900; line-height: 1.18; color: #ffffff !important; margin: 0 0 14px 0; letter-spacing: -0.8px; text-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+.ht-title-highlight { background: linear-gradient(90deg, #fdba74, #fef08a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.ht-hero-desc { font-size: 15px; color: rgba(255,255,255,0.85); line-height: 1.65; margin: 0 0 26px 0; }
+.ht-hero-desc strong { color: #fde68a; }
+.ht-hero-btns { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+.ht-btn-primary { display: inline-flex; align-items: center; gap: 9px; background: #ffffff; color: #c2410c; font-size: 14px; font-weight: 800; padding: 13px 26px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.18); transition: all 0.25s ease; }
+.ht-btn-primary:hover { background: #fff7ed; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
+.ht-btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); color: #ffffff; font-size: 14px; font-weight: 700; padding: 13px 22px; border-radius: 9999px; border: 1.5px solid rgba(255,255,255,0.4); cursor: pointer; transition: all 0.25s ease; }
+.ht-btn-ghost:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
+.ht-trust-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ht-trust-item { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 600; }
+.ht-trust-dot { width: 4px; height: 4px; background: rgba(255,255,255,0.35); border-radius: 50%; flex-shrink: 0; }
+.ht-hero-right { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; flex-shrink: 0; }
+.ht-float-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-radius: 16px; padding: 12px 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); min-width: 180px; }
+.ht-float-card-1 { animation: ht-float 5s ease-in-out infinite; }
+.ht-float-card-2 { animation: ht-float 5s ease-in-out infinite 1.5s; }
+.ht-float-card-3 { animation: ht-float-alt 6s ease-in-out infinite 0.8s; }
+.ht-float-emoji { font-size: 28px; line-height: 1; }
+.ht-float-label { font-size: 13px; font-weight: 800; color: #1c1917; }
+.ht-float-sub { font-size: 11px; color: #78716c; margin-top: 2px; }
+.ht-paw-art { font-size: 52px; opacity: 0.18; position: absolute; bottom: -12px; right: -8px; pointer-events: none; animation: ht-float 7s ease-in-out infinite 2s; }
+
+.ht-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ht-stat-card { position: relative; background: #ffffff; border-radius: 20px; padding: 18px 20px; border: 1.5px solid var(--border-subtle); display: flex; align-items: center; gap: 14px; cursor: pointer; overflow: hidden; transition: all 0.28s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 2px 12px rgba(60,40,20,0.04); }
+.ht-stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(60,40,20,0.10); }
+.ht-stat-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ht-stat-body { flex: 1; }
+.ht-stat-num { font-size: 28px; font-weight: 900; color: #1c1917; line-height: 1; display: block; }
+.ht-stat-lbl { font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-top: 4px; display: block; }
+.ht-stat-arrow { color: #d6d3d1; transition: all 0.2s ease; flex-shrink: 0; }
+.ht-stat-card:hover .ht-stat-arrow { transform: translateX(4px); }
+.ht-stat-glow { position: absolute; bottom: -20px; right: -20px; width: 90px; height: 90px; border-radius: 50%; opacity: 0.12; transition: opacity 0.3s ease; pointer-events: none; }
+.ht-stat-card:hover .ht-stat-glow { opacity: 0.22; }
+.ht-stat-orange .ht-stat-icon { background: #fff7ed; color: #ea580c; }
+.ht-stat-orange:hover { border-color: #ea580c; }
+.ht-stat-orange:hover .ht-stat-arrow { color: #ea580c; }
+.ht-glow-orange { background: #ea580c; }
+.ht-stat-teal .ht-stat-icon { background: #f0fdfa; color: #0d9488; }
+.ht-stat-teal:hover { border-color: #0d9488; }
+.ht-stat-teal:hover .ht-stat-arrow { color: #0d9488; }
+.ht-glow-teal { background: #0d9488; }
+.ht-stat-amber .ht-stat-icon { background: #fef3c7; color: #d97706; }
+.ht-stat-amber:hover { border-color: #d97706; }
+.ht-stat-amber:hover .ht-stat-arrow { color: #d97706; }
+.ht-glow-amber { background: #d97706; }
+.ht-stat-green .ht-stat-icon { background: #f0fdf4; color: #16a34a; }
+.ht-stat-green:hover { border-color: #16a34a; }
+.ht-stat-green:hover .ht-stat-arrow { color: #16a34a; }
+.ht-glow-green { background: #16a34a; }
+
+.ht-remind-banner { display: flex; align-items: center; gap: 12px; background: linear-gradient(90deg, #fffbeb, #fef3c7); border: 1.5px solid #fde68a; border-radius: 14px; padding: 14px 20px; font-size: 14px; color: #92400e; animation: ht-fadeSlideUp 0.4s ease; }
+.ht-remind-icon { color: #d97706; flex-shrink: 0; }
+.ht-remind-banner span { flex: 1; }
+.ht-remind-btn { display: inline-flex; align-items: center; gap: 5px; background: #d97706; color: white; font-size: 12px; font-weight: 700; padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: background 0.2s ease; }
+.ht-remind-btn:hover { background: #b45309; }
+
+.ht-section { background: #ffffff; border-radius: 22px; padding: 26px 30px; border: 1.5px solid var(--border-subtle); box-shadow: 0 2px 14px rgba(60,40,20,0.04); }
+.ht-section-hd { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
+.ht-section-title { margin: 0; font-size: 18px; font-weight: 800; color: #1c1917; display: flex; align-items: center; gap: 8px; }
+.ht-section-sub { margin: 5px 0 0 0; font-size: 13px; color: var(--text-muted); }
+.ht-link-btn { display: inline-flex; align-items: center; gap: 5px; color: #ea580c; font-size: 13px; font-weight: 700; background: transparent; border: none; cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: background 0.2s ease; white-space: nowrap; flex-shrink: 0; }
+.ht-link-btn:hover { background: #fff7ed; }
+
+.ht-steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ht-step-card { border-radius: 18px; padding: 22px; border: 1.5px solid transparent; position: relative; transition: all 0.25s ease; }
+.ht-step-orange { background: #fffbf5; border-color: #fde8ca; }
+.ht-step-teal   { background: #f0fdfa; border-color: #b2ede8; }
+.ht-step-green  { background: #f0fdf4; border-color: #bbf7d0; }
+.ht-step-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.07); }
+.ht-step-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.ht-step-num { font-size: 32px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #ea580c, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.ht-step-emoji { font-size: 26px; }
+.ht-step-icon-box { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.ht-icon-orange { background: #fff7ed; color: #ea580c; }
+.ht-icon-teal   { background: #ccfbf1; color: #0d9488; }
+.ht-icon-green  { background: #dcfce7; color: #16a34a; }
+.ht-step-title { margin: 0 0 8px 0; font-size: 15px; font-weight: 800; color: #1c1917; }
+.ht-step-text  { margin: 0; font-size: 13px; color: #78716c; line-height: 1.55; }
+
+.ht-pets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ht-pet-card { background: #fbf9f6; border-radius: 18px; padding: 18px 16px; border: 1.5px solid #ede7db; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.25s ease; }
+.ht-pet-card:hover { background: #ffffff; border-color: #ea580c; transform: translateY(-4px); box-shadow: 0 8px 22px rgba(234,88,12,0.1); }
+.ht-pet-avatar-wrap { position: relative; margin-bottom: 10px; }
+.ht-pet-emoji { font-size: 42px; line-height: 1; display: block; }
+.ht-pet-status-dot { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ffffff; }
+.ht-pet-status-dot.healthy { background: #10b981; }
+.ht-pet-status-dot.warning { background: #f59e0b; }
+.ht-pet-info { margin-bottom: 14px; width: 100%; }
+.ht-pet-name { margin: 0 0 7px 0; font-size: 15px; font-weight: 800; color: #1c1917; }
+.ht-pet-tags { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
+.ht-ptag { padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+.ht-ptag.orange { background: #fff7ed; color: #ea580c; }
+.ht-ptag.grey   { background: #f5f5f4; color: #78716c; }
+.ht-pet-meta { font-size: 11px; color: #a8a29e; }
+.ht-btn-diagnose-pet { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(135deg, #ea580c, #f97316); color: white; font-size: 12.5px; font-weight: 700; padding: 10px 12px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 3px 10px rgba(234,88,12,0.2); }
+.ht-btn-diagnose-pet:hover { background: linear-gradient(135deg, #c2410c, #ea580c); box-shadow: 0 6px 16px rgba(234,88,12,0.3); transform: translateY(-1px); }
+.ht-pet-add-card { background: transparent; border-radius: 18px; padding: 18px 16px; border: 2px dashed #d6cebe; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: #a8a29e; font-size: 13px; font-weight: 600; min-height: 160px; transition: all 0.2s ease; }
+.ht-pet-add-card:hover { border-color: #ea580c; color: #ea580c; background: #fff7ed; }
+.ht-empty-pets { text-align: center; padding: 38px 20px; background: #fbf9f6; border-radius: 16px; border: 1.5px dashed #ddd4c4; }
+.ht-empty-art { font-size: 48px; display: block; margin-bottom: 12px; }
+.ht-empty-pets h4 { margin: 0 0 7px 0; font-size: 16px; color: #1c1917; }
+.ht-empty-pets p { font-size: 13px; color: #78716c; margin: 0 auto 18px; max-width: 420px; }
+.ht-btn-add-pet { display: inline-flex; align-items: center; gap: 7px; background: #ea580c; color: white; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; transition: background 0.2s ease; }
+.ht-btn-add-pet:hover { background: #c2410c; }
+
+.ht-tips-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.ht-tip-card { border-radius: 20px; padding: 24px; border: 1.5px solid; display: flex; gap: 18px; align-items: flex-start; transition: transform 0.2s ease; }
+.ht-tip-card:hover { transform: translateY(-2px); }
+.ht-tip-red   { background: #fffbf5; border-color: #fddcb2; }
+.ht-tip-amber { background: #fefce8; border-color: #fef08a; }
+.ht-tip-icon-wrap { font-size: 36px; flex-shrink: 0; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6); border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.ht-tip-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; margin-bottom: 8px; }
+.ht-tip-badge.danger  { background: #fee2e2; color: #dc2626; }
+.ht-tip-badge.warning { background: #fef3c7; color: #d97706; }
+.ht-tip-title { margin: 0 0 8px 0; font-size: 15.5px; font-weight: 800; color: #1c1917; }
+.ht-tip-body  { font-size: 13px; color: #57534e; line-height: 1.6; margin: 0 0 12px 0; }
+.ht-tip-footer-lbl { font-size: 11.5px; color: #a8a29e; font-weight: 600; }
+
+@media (max-width: 1024px) {
+  .ht-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .ht-pets-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .ht-hero { flex-direction: column; padding: 30px 24px; min-height: auto; }
+  .ht-hero-right { display: none; }
+  .ht-hero-title { font-size: 26px; }
+  .ht-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .ht-steps-grid { grid-template-columns: 1fr; }
+  .ht-tips-grid { grid-template-columns: 1fr; }
+  .ht-pets-grid { grid-template-columns: repeat(2, 1fr); }
+  .ht-section { padding: 20px 18px; }
+  .ht-btn-primary, .ht-btn-ghost { width: 100%; justify-content: center; }
+  .ht-hero-btns { flex-direction: column; }
+}
+@media (max-width: 480px) {
+  .ht-stats-row { grid-template-columns: 1fr; }
+  .ht-pets-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   HEADER GUEST AUTH BUTTONS (KHI CHƯA ĐĂNG NHẬP)
+   ============================================================ */
+.header-guest-auth-btns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-header-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-strong);
+  background: #ffffff;
+  color: #292524;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.btn-header-login:hover {
+  background: #f5efeb;
+  border-color: var(--primary-orange);
+  color: var(--primary-orange);
+  transform: translateY(-1px);
+}
+
+.btn-header-register {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);
+}
+
+.btn-header-register:hover {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.35);
+}
+
+/* ============================================================
+   NOTIFICATION BELL DROPDOWN PANEL
+   ============================================================ */
+.notif-wrapper {
+  position: relative;
+}
+
+.notification-count-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  background: #dc2626;
+  color: #ffffff;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-width: 90vw;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 16px 40px -8px rgba(45, 30, 15, 0.16);
+  z-index: 250;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+}
+
+.notif-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: #faf7f2;
+}
+
+.notif-panel-header strong {
+  font-size: 14px;
+  color: #1c1917;
+}
+
+.notif-mark-all {
+  background: transparent;
+  border: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary-orange);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notif-mark-all:hover {
+  text-decoration: underline;
+}
+
+.notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: #a8a29e;
+  font-size: 13.5px;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid #f5efeb;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.notif-item:hover {
+  background: #fdf8f4;
+}
+
+.notif-item.unread {
+  background: #fff8f0;
+}
+
+.notif-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notif-icon.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.notif-icon.warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.notif-icon.info {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.notif-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notif-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c1917;
+}
+
+.notif-message {
+  font-size: 12px;
+  color: #57534e;
+  line-height: 1.45;
+}
+
+.notif-time {
+  font-size: 11px;
+  color: #a8a29e;
+  margin-top: 2px;
+}
+
+.notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ea580c;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+/* ============================================================
+   GUEST FEATURE LOCK CARD (KHI CHƯA LOGIN TRUY CẬP TAB CÁ NHÂN)
+   ============================================================ */
+.guest-feature-lock-card {
+  max-width: 620px;
+  margin: 40px auto;
+  padding: 40px 32px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 16px 40px -12px rgba(70, 45, 20, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guest-lock-art {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.guest-lock-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1c1917;
+  margin: 0 0 10px 0;
+}
+
+.guest-lock-desc {
+  font-size: 14px;
+  color: #57534e;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+  max-width: 480px;
+}
+
+.guest-lock-btns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ht-guest-actions-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.guest-welcome-box {
+  padding: 36px 24px;
+  border: 1.5px dashed var(--border-strong);
+  background: #fffdfa;
+}
+
+/* ============================================================
+   DOCTOR VERIFIED BADGE THEO TRẠNG THÁI REVIEW
+   ============================================================ */
+.doctor-verified-badge-pill.agreed {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.doctor-verified-badge-pill.corrected {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.doctor-verified-badge-pill.pending {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.dropdown-user-email {
+  font-size: 11px;
+  color: var(--primary-teal);
+  word-break: break-all;
+}
+
+.switcher-preview-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #78716c;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
 }
 

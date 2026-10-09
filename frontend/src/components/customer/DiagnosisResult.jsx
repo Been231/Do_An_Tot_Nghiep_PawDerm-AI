@@ -70,9 +70,19 @@ export default function DiagnosisResult({ diagnosisResult }) {
 
         {/* Cột phải: Huy hiệu Bác sĩ xác nhận & Biểu đồ cột dọc */}
         <div className="metrics-bars-col">
-          <div className="doctor-verified-badge-pill">
-            <span>🛡️ Đã được Bác sĩ xác nhận ✍️</span>
-          </div>
+          {result?.review_status === 'agreed' ? (
+            <div className="doctor-verified-badge-pill agreed" title="Bác sĩ thú y đã đồng thuận với kết quả AI">
+              <span>🛡️ Đã được Bác sĩ xác nhận ✍️</span>
+            </div>
+          ) : result?.review_status === 'corrected' ? (
+            <div className="doctor-verified-badge-pill corrected" title="Bác sĩ đã đính chính lại chẩn đoán">
+              <span>🩺 Bác sĩ đính chính: {result.doctor_corrected_disease || 'Xem kết quả mới'}</span>
+            </div>
+          ) : (
+            <div className="doctor-verified-badge-pill pending" title="Ca bệnh đang chờ bác sĩ chuyên khoa thẩm định">
+              <span>⏳ Đang chờ Bác sĩ thẩm định lâm sàng</span>
+            </div>
+          )}
 
           <span className="metrics-sub-title mt-3">Xác xuất các loại bệnh</span>
           <div className="v-barchart-container">

@@ -40,10 +40,10 @@ export default function DoctorCaseDetail({
         <div>
           <span className="badge-anon-patient">Bệnh Nhân Ẩn Danh: {selectedCase.anonymous_code}</span>
           <h3 className="mt-1">
-            Bệnh nhân: {selectedCase.patient_info?.species} ({selectedCase.patient_info?.breed})
+            Bệnh nhân: {selectedCase.patient_info?.species || 'Thú cưng'} {selectedCase.patient_info?.breed ? `(${selectedCase.patient_info.breed})` : ''}
           </h3>
           <span className="text-muted small">
-            Độ tuổi: {selectedCase.patient_info?.age} &bull; Cân nặng: {selectedCase.patient_info?.weight || 'Bình thường'}
+            {selectedCase.patient_info?.age ? `Độ tuổi: ${selectedCase.patient_info.age} • ` : ''}Cân nặng: {selectedCase.patient_info?.weight || 'Bình thường'}
           </span>
         </div>
 

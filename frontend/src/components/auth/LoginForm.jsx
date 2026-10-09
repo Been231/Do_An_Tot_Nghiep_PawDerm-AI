@@ -78,7 +78,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
           <input
             type="text"
             className="clean-input-pill"
-            placeholder="Tên người dùng hoặc Email"
+            placeholder="Tên đăng nhập hoặc Gmail"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required

@@ -25,6 +25,8 @@ try:
 except ImportError:
     from backend.app.data.disease_kb import DISEASE_DATABASE
 
+from app.core.security import hash_password, verify_password, is_hashed, sanitize_user
+
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY", "")
 
@@ -49,32 +51,51 @@ class SupabaseService:
     # ──────────────────────────────────────────────────────────────────────────
     @classmethod
     def authenticate(cls, username: str, password: str) -> Optional[Dict[str, Any]]:
-        """Xác thực đăng nhập người dùng."""
+        """
+        Xác thực đăng nhập bằng Tên đăng nhập HOẶC Gmail.
+        - Mật khẩu được so khớp bằng bcrypt.
+        - Tài khoản cũ còn lưu plaintext sẽ được tự động nâng cấp lên hash sau khi đăng nhập đúng.
+        - Tài khoản mẫu (fallback) CHỈ dùng khi không kết nối được Supabase.
+        """
         client = get_supabase_client()
         if not client:
             return cls._fallback_auth(username, password)
 
         try:
-            res = client.table("users").select("*").eq("username", username).eq("password", password).limit(1).execute()
-            if res.data and len(res.data) > 0:
-                user = res.data[0]
-                # Bổ sung vai trò mặc định nếu DB chưa có cột role
-                if "role" not in user or not user["role"]:
-                    if username == "admin":
-                        user["role"] = "admin"
-                    elif username == "bacsi":
-                        user["role"] = "doctor"
-                    else:
-                        user["role"] = "customer"
-                if "status" not in user or not user["status"]:
-                    user["status"] = "active"
-                return user
-            else:
+            column = "email" if "@" in username else "username"
+            lookup = username.lower() if column == "email" else username
+            res = client.table("users").select("*").eq(column, lookup).limit(1).execute()
+            if not res.data:
+                # Chỉ dùng tài khoản mẫu khi tài khoản chưa tồn tại trong DB
                 return cls._fallback_auth(username, password)
+
+            user = res.data[0]
+            stored = user.get("password")
+            if not verify_password(password, stored):
+                # Tài khoản có trong DB mà sai mật khẩu -> từ chối (để đổi mật khẩu có hiệu lực thật)
+                return None
+
+            # Nâng cấp mật khẩu plaintext cũ lên bcrypt
+            if not is_hashed(stored):
+                try:
+                    client.table("users").update({"password": hash_password(password)}).eq("id", user["id"]).execute()
+                except Exception as e_up:
+                    print(f"⚠️ Không nâng cấp được hash mật khẩu: {e_up}")
+
+            # Bổ sung vai trò mặc định nếu DB chưa có cột role
+            if "role" not in user or not user["role"]:
+                if user.get("username") == "admin":
+                    user["role"] = "admin"
+                elif user.get("username") == "bacsi":
+                    user["role"] = "doctor"
+                else:
+                    user["role"] = "customer"
+            if "status" not in user or not user["status"]:
+                user["status"] = "active"
+            return sanitize_user(user)
         except Exception as e:
             print(f"⚠️ Lỗi xác thực qua Supabase: {e}")
             return cls._fallback_auth(username, password)
-        return None
 
     @classmethod
     def _fallback_auth(cls, username: str, password: str) -> Optional[Dict[str, Any]]:
@@ -118,19 +139,34 @@ class SupabaseService:
         return None
 
     @classmethod
+    def email_exists(cls, email: str) -> bool:
+        """Kiểm tra Gmail đã được dùng để đăng ký tài khoản khác chưa."""
+        client = get_supabase_client()
+        if not client or not email:
+            return False
+        try:
+            res = client.table("users").select("id").eq("email", email.strip().lower()).limit(1).execute()
+            return bool(res.data)
+        except Exception as e:
+            print(f"⚠️ Lỗi kiểm tra email: {e}")
+            return False
+
+    @classmethod
     def register_user(cls, user_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Đăng ký tài khoản mới."""
+        """Đăng ký tài khoản mới (mật khẩu được băm bcrypt trước khi lưu)."""
         client = get_supabase_client()
         username = user_data.get("username")
         role = user_data.get("role", "customer")
         status = "pending_approval" if role == "doctor" else "active"
+        hashed_pw = hash_password(user_data.get("password", ""))
+        email = (user_data.get("email") or f"{username}@pawderm.vn").strip().lower()
 
         payload = {
             "username": username,
-            "password": user_data.get("password"),
+            "password": hashed_pw,
             "full_name": user_data.get("full_name", ""),
             "phone": user_data.get("phone", ""),
-            "email": user_data.get("email", f"{username}@pawderm.vn"),
+            "email": email,
             "address": user_data.get("address", ""),
             "role": role,
             "status": status,
@@ -144,6 +180,8 @@ class SupabaseService:
                 check = client.table("users").select("id").eq("username", username).execute()
                 if check.data and len(check.data) > 0:
                     return {"success": False, "error": "Tên đăng nhập đã tồn tại trên hệ thống!"}
+                if cls.email_exists(email):
+                    return {"success": False, "error": "Gmail này đã được dùng để đăng ký tài khoản khác!"}
                 
                 res = client.table("users").insert(payload).execute()
                 if res.data:
@@ -160,16 +198,16 @@ class SupabaseService:
                             })
                         except Exception as e_p:
                             print(f"⚠️ Lỗi tạo pet: {e_p}")
-                    return {"success": True, "user": created_u}
+                    return {"success": True, "user": sanitize_user(created_u)}
             except Exception as e:
                 # Nếu cột role/specialty chưa được add vào schema Supabase
                 try:
                     basic_payload = {
                         "username": username,
-                        "password": user_data.get("password"),
+                        "password": hashed_pw,
                         "full_name": user_data.get("full_name", ""),
                         "phone": user_data.get("phone", ""),
-                        "email": user_data.get("email", ""),
+                        "email": email,
                         "address": user_data.get("address", "")
                     }
                     res = client.table("users").insert(basic_payload).execute()
@@ -188,12 +226,12 @@ class SupabaseService:
                                 })
                             except Exception:
                                 pass
-                        return {"success": True, "user": created}
+                        return {"success": True, "user": sanitize_user(created)}
                 except Exception as ex2:
                     return {"success": False, "error": str(ex2)}
 
         payload["id"] = str(uuid.uuid4())
-        return {"success": True, "user": payload}
+        return {"success": True, "user": sanitize_user(payload)}
 
     @classmethod
     def update_profile(cls, user_id: str, updates: Dict[str, Any]) -> bool:
@@ -201,11 +239,50 @@ class SupabaseService:
         client = get_supabase_client()
         if client:
             try:
+                updates = dict(updates or {})
+                # Không cho phép tự nâng quyền / mở khóa / đổi mật khẩu / đổi định danh qua API hồ sơ
+                # (đổi mật khẩu phải đi qua change_password để xác minh mật khẩu cũ)
+                for forbidden in ("role", "status", "id", "password", "username", "email", "created_at"):
+                    updates.pop(forbidden, None)
+                if not updates:
+                    return True
                 client.table("users").update(updates).eq("id", user_id).execute()
                 return True
             except Exception as e:
-                print(f"⚠️ Lỗi update profile: {e}")
+                print(f"[WARN] Loi update profile: {e}")
         return False
+
+    @classmethod
+    def get_user_by_id(cls, user_id: str) -> Optional[Dict[str, Any]]:
+        """Lấy thông tin người dùng (đã loại bỏ mật khẩu)."""
+        client = get_supabase_client()
+        if not client:
+            return None
+        try:
+            res = client.table("users").select("*").eq("id", user_id).limit(1).execute()
+            if res.data:
+                return sanitize_user(res.data[0])
+        except Exception as e:
+            print(f"[WARN] Loi doc user: {e}")
+        return None
+
+    @classmethod
+    def change_password(cls, user_id: str, old_password: str, new_password: str) -> Dict[str, Any]:
+        """Đổi mật khẩu: bắt buộc xác minh đúng mật khẩu hiện tại, lưu mật khẩu mới dạng bcrypt."""
+        client = get_supabase_client()
+        if not client:
+            return {"success": False, "error": "Không kết nối được cơ sở dữ liệu, vui lòng thử lại sau!"}
+        try:
+            res = client.table("users").select("id, password").eq("id", user_id).limit(1).execute()
+            if not res.data:
+                return {"success": False, "error": "Không tìm thấy tài khoản!"}
+            if not verify_password(old_password, res.data[0].get("password")):
+                return {"success": False, "error": "Mật khẩu hiện tại không chính xác!"}
+            client.table("users").update({"password": hash_password(new_password)}).eq("id", user_id).execute()
+            return {"success": True}
+        except Exception as e:
+            print(f"[WARN] Loi doi mat khau: {e}")
+            return {"success": False, "error": "Không đổi được mật khẩu, vui lòng thử lại sau!"}
 
     # ──────────────────────────────────────────────────────────────────────────
     # 2. PHÂN HỆ KHÁCH HÀNG: HỒ SƠ THÚ CƯNG (PETS)
@@ -822,3 +899,85 @@ class SupabaseService:
                 {"day": "Chủ nhật", "scans": 40}
             ]
         }
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # 6. HỆ THỐNG THÔNG BÁO (NOTIFICATIONS) THEO VAI TRÒ
+    # ──────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def get_notifications(cls, user_id: str, role: str = "customer", limit: int = 20) -> List[Dict[str, Any]]:
+        """
+        Sinh danh sách thông báo từ dữ liệu sẵn có:
+          - Chủ nuôi: các ca bệnh đã được Bác sĩ thẩm định (agreed / corrected)
+          - Bác sĩ:   các ca bệnh mới đang chờ thẩm định
+          - Admin:    tài khoản đang chờ phê duyệt
+        Mỗi thông báo có: id, type, title, message, created_at
+        """
+        client = get_supabase_client()
+        if not client:
+            return []
+
+        notifications: List[Dict[str, Any]] = []
+        try:
+            if role == "customer":
+                res = (client.table("diagnosis_records")
+                       .select("id, disease_name_vi, review_status, doctor_name, doctor_corrected_disease, reviewed_at, created_at, pets(name)")
+                       .eq("user_id", user_id)
+                       .in_("review_status", ["agreed", "corrected"])
+                       .order("reviewed_at", desc=True)
+                       .limit(limit)
+                       .execute())
+                for r in res.data or []:
+                    pet_name = (r.get("pets") or {}).get("name") or "bé cưng"
+                    doctor = r.get("doctor_name") or "Bác sĩ thú y"
+                    if r.get("review_status") == "corrected":
+                        title = "Bác sĩ đã đính chính chẩn đoán"
+                        message = (f"{doctor} đã đính chính kết quả của {pet_name}: "
+                                   f"{r.get('doctor_corrected_disease') or 'xem chi tiết trong lịch sử'}.")
+                        ntype = "warning"
+                    else:
+                        title = "Bác sĩ đã xác nhận kết quả AI"
+                        message = f"{doctor} đồng ý với chẩn đoán \"{r.get('disease_name_vi', '')}\" của {pet_name}."
+                        ntype = "success"
+                    notifications.append({
+                        "id": f"review-{r['id']}",
+                        "type": ntype,
+                        "title": title,
+                        "message": message,
+                        "created_at": r.get("reviewed_at") or r.get("created_at"),
+                    })
+
+            elif role == "doctor":
+                res = (client.table("diagnosis_records")
+                       .select("id, disease_name_vi, confidence, created_at")
+                       .eq("review_status", "pending")
+                       .order("created_at", desc=True)
+                       .limit(limit)
+                       .execute())
+                for r in res.data or []:
+                    notifications.append({
+                        "id": f"pending-{r['id']}",
+                        "type": "info",
+                        "title": "Ca bệnh mới chờ thẩm định",
+                        "message": f"AI dự đoán \"{r.get('disease_name_vi', '')}\" ({r.get('confidence', 0)}%). Vui lòng kiểm tra.",
+                        "created_at": r.get("created_at"),
+                    })
+
+            elif role == "admin":
+                res = (client.table("users")
+                       .select("id, full_name, username, created_at")
+                       .eq("status", "pending_approval")
+                       .order("created_at", desc=True)
+                       .limit(limit)
+                       .execute())
+                for u in res.data or []:
+                    notifications.append({
+                        "id": f"approval-{u['id']}",
+                        "type": "info",
+                        "title": "Tài khoản chờ phê duyệt",
+                        "message": f"{u.get('full_name') or u.get('username')} đang chờ được cấp quyền.",
+                        "created_at": u.get("created_at"),
+                    })
+        except Exception as e:
+            print(f"⚠️ Lỗi lấy thông báo: {e}")
+
+        return notifications
