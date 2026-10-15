@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Lock, Phone, Heart, AlertCircle, CheckCircle, AlertTriangle, Mail, ShieldCheck, KeyRound } from 'lucide-react';
+import { User, Lock, Phone, Heart, AlertCircle, CheckCircle, AlertTriangle, Mail, ShieldCheck, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../../services/authService';
 
 const GMAIL_REGEX = /^[a-z0-9][a-z0-9.]{5,29}(\+[a-z0-9._-]+)?@gmail\.com$/;
@@ -8,6 +8,7 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
   // Thông tin người dùng
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneWarning, setPhoneWarning] = useState('');
@@ -32,6 +33,13 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
 
   const normalizedEmail = email.trim().toLowerCase();
   const emailVerified = Boolean(verificationToken);
+
+  // Tiêu chí bảo mật mật khẩu (Viết hoa, số, ký tự đặc biệt, độ dài)
+  const hasMinLength = password.length >= 6;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const fulfilledCount = [hasMinLength, hasUppercase, hasNumber, hasSpecial].filter(Boolean).length;
 
   // Đếm ngược thời gian cho phép gửi lại mã
   useEffect(() => {
@@ -157,6 +165,21 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
       return;
     }
 
+    if (!hasUppercase) {
+      setError('Mật khẩu cần có ít nhất 1 chữ in hoa (A-Z)!');
+      return;
+    }
+
+    if (!hasNumber) {
+      setError('Mật khẩu cần có ít nhất 1 chữ số (0-9)!');
+      return;
+    }
+
+    if (!hasSpecial) {
+      setError('Mật khẩu cần có ít nhất 1 ký tự đặc biệt (ví dụ: !@#$%^&*...)!');
+      return;
+    }
+
     // Kiểm tra định dạng số điện thoại
     if (!phone.startsWith('0')) {
       setError('Số điện thoại không hợp lệ! Phải bắt đầu bằng số 0.');
@@ -248,16 +271,64 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
               required
             />
           </div>
-          <div className="input-wrapper-pill">
-            <Lock size={18} className="input-icon-left" />
-            <input
-              type="password"
-              className="clean-input-pill"
-              placeholder="Mật khẩu *"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <div className="password-field-wrapper">
+            <div className="input-wrapper-pill">
+              <Lock size={18} className="input-icon-left" />
+              <input
+                type={showPassword ? "text" : "password"}
+                className="clean-input-pill"
+                placeholder="Mật khẩu *"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="input-toggle-eye"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            {/* HIỂN THỊ TIÊU CHÍ VIẾT HOA, SỐ, KÝ TỰ ĐẶC BIỆT KHI GHI VÀO Ô MẬT KHẨU */}
+            {password.length > 0 && (
+              <div className="password-checklist-box animate-fadeIn">
+                <div className="password-strength-mini-bar">
+                  <div className="pwd-bars">
+                    {[1, 2, 3, 4].map((step) => (
+                      <span
+                        key={step}
+                        className={`pwd-bar-item ${step <= fulfilledCount ? `level-${fulfilledCount}` : ''}`}
+                      />
+                    ))}
+                  </div>
+                  <span className={`pwd-strength-tag level-${fulfilledCount}`}>
+                    {fulfilledCount <= 1 ? 'Rất yếu' : fulfilledCount === 2 ? 'Yếu' : fulfilledCount === 3 ? 'Khá' : 'Mạnh'}
+                  </span>
+                </div>
+                <div className="password-checklist-grid">
+                  <div className={`pwd-check-item ${hasUppercase ? 'passed' : ''}`}>
+                    <span className="check-bullet">{hasUppercase ? '✓' : '○'}</span>
+                    <span>Chữ viết hoa (A-Z)</span>
+                  </div>
+                  <div className={`pwd-check-item ${hasNumber ? 'passed' : ''}`}>
+                    <span className="check-bullet">{hasNumber ? '✓' : '○'}</span>
+                    <span>Chữ số (0-9)</span>
+                  </div>
+                  <div className={`pwd-check-item ${hasSpecial ? 'passed' : ''}`}>
+                    <span className="check-bullet">{hasSpecial ? '✓' : '○'}</span>
+                    <span>Ký tự đặc biệt (!@#$%...)</span>
+                  </div>
+                  <div className={`pwd-check-item ${hasMinLength ? 'passed' : ''}`}>
+                    <span className="check-bullet">{hasMinLength ? '✓' : '○'}</span>
+                    <span>Tối thiểu 6 ký tự</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

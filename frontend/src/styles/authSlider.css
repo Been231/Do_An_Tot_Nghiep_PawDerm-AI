@@ -757,3 +757,135 @@
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ============================================================
+   BẢNG TIÊU CHÍ MẬT KHẨU (VIẾT HOA, SỐ, KÝ TỰ ĐẶC BIỆT)
+   ============================================================ */
+.password-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.password-checklist-box {
+  background: #FAF7F2;
+  border: 1px solid #EBE4DA;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: -4px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(80, 50, 25, 0.05);
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .password-checklist-box {
+  background: #141f33;
+  border-color: #334155;
+  color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.password-strength-mini-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #E5DDD1;
+}
+
+[data-theme="dark"] .password-strength-mini-bar {
+  border-bottom-color: #334155;
+}
+
+.pwd-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  max-width: 110px;
+}
+
+.pwd-bar-item {
+  height: 4px;
+  flex: 1;
+  border-radius: 99px;
+  background: #E5DDD1;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .pwd-bar-item {
+  background: #334155;
+}
+
+.pwd-bar-item.level-1 { background: #EF4444; }
+.pwd-bar-item.level-2 { background: #F59E0B; }
+.pwd-bar-item.level-3 { background: #3B82F6; }
+.pwd-bar-item.level-4 { background: #10B981; }
+
+.pwd-strength-tag {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: color 0.25s ease;
+}
+
+.pwd-strength-tag.level-1 { color: #EF4444; }
+.pwd-strength-tag.level-2 { color: #F59E0B; }
+.pwd-strength-tag.level-3 { color: #3B82F6; }
+.pwd-strength-tag.level-4 { color: #10B981; }
+
+.password-checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4.5px;
+}
+
+.pwd-check-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #8D99AE;
+  font-size: 11.5px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .pwd-check-item {
+  color: #64748b;
+}
+
+.pwd-check-item .check-bullet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 9.5px;
+  font-weight: 800;
+  background: #E5DDD1;
+  color: #8D99AE;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme="dark"] .pwd-check-item .check-bullet {
+  background: #334155;
+  color: #64748b;
+}
+
+.pwd-check-item.passed {
+  color: #059669;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .pwd-check-item.passed {
+  color: #34d399;
+}
+
+.pwd-check-item.passed .check-bullet {
+  background: #10B981;
+  color: #FFFFFF;
+  transform: scale(1.1);
+}
+
