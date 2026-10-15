@@ -167,6 +167,13 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
     setDiagError('');
   };
 
+  const handleCapturedImage = (file, dataUrl) => {
+    setImageFile(file);
+    setImagePreview(dataUrl);
+    setDiagnosisResult(null);
+    setDiagError('');
+  };
+
   const handleRunDiagnosis = async () => {
     if (!currentUser) {
       setDiagError('Vui lòng đăng nhập để thực hiện phân tích và lưu kết quả vào bệnh án bé cưng!');
@@ -294,6 +301,7 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
           setProgressionNotes={setProgressionNotes}
           imagePreview={imagePreview}
           handleImageChange={handleImageChange}
+          handleCapturedImage={handleCapturedImage}
           diagError={diagError}
           analyzing={analyzing}
           handleRunDiagnosis={handleRunDiagnosis}

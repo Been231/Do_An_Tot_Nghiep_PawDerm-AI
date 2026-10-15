@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
+import { Camera, Upload } from 'lucide-react';
 import DiagnosisResult from './DiagnosisResult';
+import LiveCameraModal from './LiveCameraModal';
 
 export default function DiagnosisTab({
   pets = [],
@@ -10,6 +12,7 @@ export default function DiagnosisTab({
   toggleSymptom,
   imagePreview,
   handleImageChange,
+  handleCapturedImage,
   diagError,
   analyzing,
   handleRunDiagnosis,
@@ -17,6 +20,7 @@ export default function DiagnosisTab({
 }) {
   const fileInputRef = useRef(null);
   const [selectedSpecies, setSelectedSpecies] = useState('dog');
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   // Lọc danh sách thú cưng theo loài
   const filteredPets = pets.filter(p => {
@@ -148,17 +152,32 @@ export default function DiagnosisTab({
             <div className="vf-grid-v1"></div>
             <div className="vf-grid-v2"></div>
 
-            {/* Nút chụp ảnh nổi góc dưới */}
-            <button 
-              type="button" 
-              className="vf-capture-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-            >
-              📷 Chụp ảnh
-            </button>
+            {/* Cụm nút hành động: Chụp Live Camera hoặc Tải ảnh */}
+            <div className="vf-actions-cluster">
+              <button 
+                type="button" 
+                className="vf-capture-btn camera"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsCameraOpen(true);
+                }}
+                title="Bật webcam hoặc camera thiết bị để chụp trực tiếp"
+              >
+                <Camera size={15} /> Chụp trực tiếp
+              </button>
+
+              <button 
+                type="button" 
+                className="vf-capture-btn upload"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                title="Chọn ảnh có sẵn trong máy"
+              >
+                <Upload size={15} /> Tải ảnh lên
+              </button>
+            </div>
           </div>
 
           <input 
@@ -167,6 +186,20 @@ export default function DiagnosisTab({
             onChange={handleImageChange} 
             accept="image/*" 
             style={{ display: 'none' }} 
+          />
+
+          {/* MODAL CAMERA LIVE STREAMING */}
+          <LiveCameraModal 
+            isOpen={isCameraOpen}
+            onClose={() => setIsCameraOpen(false)}
+            onCapture={(file, dataUrl) => {
+              if (handleCapturedImage) {
+                handleCapturedImage(file, dataUrl);
+              } else if (file) {
+                // Fallback nếu gọi qua synthetic event
+                handleImageChange?.({ target: { files: [file] } });
+              }
+            }}
           />
 
           {/* TRIỆU CHỨNG LÂM SÀNG */}
@@ -210,7 +243,12 @@ export default function DiagnosisTab({
 
       {/* CỘT PHẢI: KẾT QUẢ CHẨN ĐOÁN */}
       <div className="diag-right-column">
-        <DiagnosisResult diagnosisResult={diagnosisResult} />
+        <DiagnosisResult
+          diagnosisResult={diagnosisResult}
+          pet={selectedPet}
+          owner={currentUser}
+          imageUrl={imagePreview}
+        />
       </div>
     </div>
   );

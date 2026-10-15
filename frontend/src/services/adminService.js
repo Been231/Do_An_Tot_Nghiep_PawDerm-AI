@@ -86,5 +86,37 @@ export const adminService = {
     if (!res.ok) throw new Error('Lỗi tải số liệu thống kê');
     const data = await res.json();
     return data.metrics;
+  },
+
+  /**
+   * Lấy trạng thái quy trình Active Learning & Auto-Retrain
+   */
+  async getRetrainStatus() {
+    const res = await fetch(`${API_BASE_URL}/admin/retrain/status`);
+    if (!res.ok) throw new Error('Không thể lấy trạng thái retrain');
+    const data = await res.json();
+    return data.status;
+  },
+
+  /**
+   * Kích hoạt tiến trình Active Learning Huấn luyện lại mô hình
+   */
+  async triggerRetrain(triggeredBy = 'Admin Quản trị viên') {
+    const res = await fetch(`${API_BASE_URL}/admin/retrain/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ triggered_by: triggeredBy })
+    });
+    return await res.json();
+  },
+
+  /**
+   * Lấy lịch sử các phiên bản mô hình đã Retrain
+   */
+  async getRetrainHistory() {
+    const res = await fetch(`${API_BASE_URL}/admin/retrain/history`);
+    if (!res.ok) throw new Error('Không thể lấy lịch sử retrain');
+    const data = await res.json();
+    return data.history || [];
   }
 };

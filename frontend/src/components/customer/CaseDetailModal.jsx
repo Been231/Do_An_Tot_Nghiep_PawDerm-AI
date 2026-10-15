@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Calendar, Stethoscope, Activity, ClipboardList, PawPrint, Sparkles } from 'lucide-react';
+import ExportPdfButton from '../common/ExportPdfButton';
 import '../../styles/profileHistory.css';
 
 const fmtDateTime = (iso) =>
@@ -72,9 +73,17 @@ export default function CaseDetailModal({ record, onClose }) {
             <h2 className="cd-title">{record.disease_name_vi || 'Chưa xác định'}</h2>
             {record.disease_name_en && <div className="cd-subtitle">{record.disease_name_en}</div>}
 
-            <div className="cd-badges">
-              <ReviewBadge rec={record} />
-              {record.severity && <span className={`cd-severity ${record.severity_badge || ''}`}>Mức độ: {record.severity}</span>}
+            <div className="cd-badges" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <ReviewBadge rec={record} />
+                {record.severity && <span className={`cd-severity ${record.severity_badge || ''}`}>Mức độ: {record.severity}</span>}
+              </div>
+              <ExportPdfButton
+                id="btn-export-pdf-modal"
+                record={record}
+                pet={{ name: petName, species: species }}
+                compact
+              />
             </div>
 
             <div className="cd-confidence">

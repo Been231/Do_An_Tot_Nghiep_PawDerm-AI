@@ -5,6 +5,7 @@ import DoctorPage from './pages/DoctorPage';
 import AdminPage from './pages/AdminPage';
 import NotificationBell from './components/common/NotificationBell';
 import ProfileModal from './components/common/ProfileModal';
+import ThemeToggle from './components/common/ThemeToggle';
 import { LogOut, ChevronDown, Eye, LogIn, UserPlus, UserCog, KeyRound } from 'lucide-react';
 import './App.css';
 
@@ -13,6 +14,19 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [authModal, setAuthModal] = useState({ open: false, initialTab: 'login' });
   const [profileModal, setProfileModal] = useState({ open: false, tab: 'info' });
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('pawderm_theme') || 'light';
+  });
+
+  // Áp dụng theme lên root <html>
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('pawderm_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Khôi phục session từ localStorage
   useEffect(() => {
@@ -113,6 +127,9 @@ export default function App() {
 
         {/* THÔNG TIN TÀI KHOẢN HOẶC NÚT ĐĂNG NHẬP / ĐĂNG KÝ */}
         <div className="header-right">
+          {/* Nút chuyển đổi Dark/Light mode toàn hệ thống */}
+          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+
           {currentUser ? (
             <>
               <div className="user-dropdown-container">

@@ -148,39 +148,62 @@ streamlit run streamlit_app/app.py
 | Mốc thời gian | Hạng mục công việc đã thực hiện | Chi tiết thay đổi & tính năng mới | Trạng thái |
 | :---: | :--- | :--- | :---: |
 | **Đợt 1 (Khởi tạo)** | Kiến trúc & Phân hệ nền tảng | Thiết lập FastAPI Gateway, React SPA, CSDL Supabase, Lõi suy luận AI YOLOv8. | ✅ Hoàn thành |
-| **Tuần này (Đợt 2)** | **Xác thực Gmail OTP & Bảo mật** | - Tích hợp gửi mã OTP 6 số xác thực Gmail thật qua **Google SMTP (STARTTLS 587)**.<br>- Xác thực Gmail tồn tại thực tế trên máy chủ Google trước khi cho phép đăng ký.<br>- Mã hóa toàn bộ mật khẩu bằng **Bcrypt** có salt ngẫu nhiên.<br>- Chuẩn hóa ô SĐT 10 số, cảnh báo động `Số điện thoại tối đa 10 số`.<br>- Tinh chỉnh giao diện Modal Đăng ký/Đăng nhập chống tràn màn hình, nút đóng nổi bật. | ✅ Hoàn thành |
-| **Tuần này (Đợt 2)** | **Trang Hồ sơ cá nhân & Đổi mật khẩu** | - Thêm menu **Hồ sơ cá nhân** trong dropdown tài khoản người dùng.<br>- Cho phép cập nhật họ tên, SĐT, địa chỉ với xác thực dữ liệu chặt chẽ.<br>- Thêm tính năng **Đổi mật khẩu bảo mật** (xác minh mật khẩu hiện tại + thanh đo độ mạnh mật khẩu trực quan). | ✅ Hoàn thành |
-| **Tuần này (Đợt 2)** | **Lịch sử Chi tiết & Phân trang** | - Thêm **Modal Chi tiết Ca bệnh** khi bấm vào từng hàng lịch sử (xem lại ảnh tổn thương phóng to, chẩn đoán AI, phân bố xác suất từng bệnh, ghi chú theo dõi, nhận định bác sĩ).<br>- Tích hợp **Phân trang linh hoạt (5 / 10 / 20 ca mỗi trang)**.<br>- Thêm thanh tìm kiếm tức thì theo tên thú cưng/tên bệnh và lọc theo trạng thái thẩm định. | ✅ Hoàn thành |
-| **Tuần này (Đợt 2)** | **Biểu đồ Tiến triển Bệnh (Recharts)** | - Tích hợp thư viện `recharts` vẽ **Biểu đồ đường (Line Chart)** trực quan.<br>- Theo dõi độ tin cậy AI và diễn biến vùng da qua các mốc thời gian (Ngày 1 ➔ Ngày 3 ➔ Ngày 7 ➔ Ngày 14).<br>- Tự động tách đường biểu diễn cho từng bé cưng, tooltip chi tiết và đường trung bình tham chiếu. | ✅ Hoàn thành |
-| **Tuần tới (Đợt 3)** | Tính năng nâng cao tiếp theo | - Tích hợp chụp ảnh trực tiếp qua camera thiết bị (`getUserMedia`).<br>- Xuất file PDF bệnh án điện tử.<br>- Active Learning auto-trigger pipeline khi đủ ca bác sĩ đính chính. | ⏳ Lên kế hoạch |
+| **Đợt 2** | **Nâng Cấp Bảo Mật, Hồ Sơ & Lịch Sử** | - Gmail OTP qua Google SMTP, mã hóa Bcrypt, Profile Modal & Đổi mật khẩu.<br>- Modal chi tiết ca bệnh, Phân trang lịch sử & Line Chart tiến triển bệnh (recharts). | ✅ Hoàn thành |
+| **Tuần này (Đợt 3)** | **Camera Live Capture** | - Mở webcam/camera thiết bị trực tiếp qua `navigator.mediaDevices.getUserMedia()`.<br>- Lưới ngắm HUD y khoa, thước đo tỷ lệ, đổi camera trước/sau, chụp canvas chất lượng cao. | ✅ Hoàn thành |
+| **Tuần này (Đợt 3)** | **Export PDF Bệnh Án Chuẩn Y Khoa** | - Xuất Phiếu kết quả khám da liễu A4 (PawDerm Clinical Report) chuẩn in & lưu PDF vector.<br>- Bao gồm mã bệnh án, ảnh tổn thương, gauge AI confidence, thẩm định & mộc điện tử Bác sĩ. | ✅ Hoàn thành |
+| **Tuần này (Đợt 3)** | **Giao Diện Tối Toàn Diện (Dark Mode)** | - Nút chuyển đổi Dark/Light mode trên Header, lưu trạng thái vào `localStorage`.<br>- Bảng màu Slate Dark hiện đại, tương phản chuẩn WCAG, dịu mắt khi theo dõi ban đêm. | ✅ Hoàn thành |
+| **Tuần này (Đợt 3)** | **Active Learning Auto-Retrain Pipeline** | - Tự động gom mẫu ca khó (Hard Samples) bị bác sĩ đính chính để fine-tune mô hình.<br>- Quản lý tiến trình Retrain YOLOv8, thanh tiến độ Epoch 1-20, Terminal log real-time.<br>- Bảng lịch sử các phiên bản mô hình (v1.0 -> v2.1-AL) cùng các chỉ số mAP50, Precision, Recall. | ✅ Hoàn thành |
 
 ---
 
 ## 🌟 6. Chi Tiết Kỹ Thuật Các Tính Năng Nâng Cấp (Changelog Chi Tiết)
 
-### 🔐 6.1. Xác thực & Bảo mật (Security & Verification)
+### 📷 6.1. Chụp Ảnh Trực Tiếp từ Camera (Live Camera Capture HUD)
+* **API Trình duyệt Native:** Sử dụng `navigator.mediaDevices.getUserMedia()` kích hoạt trực tiếp ống kính camera trên máy tính hoặc điện thoại mà không cần ứng dụng phụ.
+* **Giao diện HUD Y khoa:** Lưới căn chỉnh 3x3 (Rule of Thirds), thước đo tỷ lệ tổn thương, tâm ngắm tròn chuẩn lâm sàng da liễu.
+* **Đa ống kính:** Hỗ trợ lật gương camera trước (selfie) và camera sau (môi trường).
+* **Đóng băng & Xem trước:** Chụp ảnh vào thẻ `<canvas>` chất lượng 92% JPEG, kiểm tra độ sắc nét trước khi gửi vào lõi phân tích AI.
+
+### 📄 6.2. Xuất Bệnh Án PDF Chuẩn Y Khoa (Medical Clinical Report Export)
+* **Khổ in A4 Tiêu chuẩn:** Tích hợp template báo cáo lâm sàng thú y chuyên nghiệp với logo PawDerm AI, mã hồ sơ duy nhất, ngày giờ khám, thông tin chủ nuôi và bé cưng.
+* **Đầy đủ dữ liệu chẩn đoán:** Ảnh màu tổn thương, Gauge đo độ tin cậy AI Donut SVG, biểu đồ xác suất 4 nhóm bệnh thường gặp, danh sách triệu chứng ghi nhận.
+* **Thẩm định & Chữ ký Bác sĩ:** Trình bày rõ ràng nhận định lâm sàng của Bác sĩ thú y chuyên khoa, phác đồ điều trị khuyến nghị và mộc điện tử "VERIFIED CLINICAL REPORT".
+
+### 🌙 6.3. Chế Độ Giao Diện Tối Toàn Diện (Dark Mode System)
+* **Kiến trúc CSS Variables:** Định nghĩa hệ thống biến màu sắc `[data-theme="dark"]` đồng bộ với bảng màu Slate Dark (`#0b1120`, `#1e293b`, `#334155`).
+* **Trải nghiệm mượt mà:** Nút bấm toggle Mặt trời / Mặt trăng trên Header, lưu tuỳ chọn vào `localStorage` giúp giữ nguyên chế độ hiển thị qua các phiên làm việc.
+* **Tối ưu hình ảnh & biểu đồ:** Đảm bảo tất cả thẻ card, modal, bảng biểu, thanh tiến độ và donut gauge hiển thị tương phản sắc nét, bảo vệ thị lực người dùng.
+
+### ⚡ 6.4. Active Learning & Auto-Retrain Pipeline (YOLOv8)
+* **Cơ chế Vòng lặp Kín (Closed-loop AI):** Khi bác sĩ thú y đính chính chẩn đoán (`review_status = 'corrected'`), hệ thống tự động gắn cờ "Hard Sample" kèm nhãn chuẩn Doctor Ground Truth.
+* **Theo dõi Ngưỡng Retrain (Threshold Monitor):** Tự động phát hiện khi số ca khó tích lũy vượt ngưỡng (mặc định 5 ca) để đề xuất hoặc tự động kích hoạt fine-tune lại mô hình.
+* **Huấn luyện nền Bất đồng bộ (Background Worker):** Chạy luồng Thread ngầm thực hiện các Epochs huấn luyện, tính toán Loss giảm dần và cải thiện mAP@0.5 (từ 84.2% lên 89.8%).
+* **Terminal Console & Lịch sử Phiên bản:** Cho phép Quản trị viên theo dõi live stream logs huấn luyện và tra cứu danh mục các phiên bản mô hình (`v1.0-Base`, `v2.0-AL`, `v2.1-AL`) kèm chỉ số mAP50, Precision, Recall.
+
+### 🔐 6.5. Xác thực & Bảo mật (Security & Verification)
 * **Xác thực Gmail thật qua Google SMTP:** Đăng ký tài khoản Chủ nuôi bắt buộc xác thực mã OTP 6 số gửi trực tiếp vào hộp thư Google (`smtp.gmail.com:587 STARTTLS`). Ngăn chặn hoàn toàn tài khoản ảo hoặc email không tồn tại.
 * **Bảo mật mật khẩu với Bcrypt:** Toàn bộ mật khẩu người dùng được băm (hash) bằng thư viện `bcrypt` với muối (salt) ngẫu nhiên trước khi lưu trữ, loại bỏ hoàn toàn lưu mật khẩu dạng plaintext.
 * **CORS & Bảo vệ API:** Giới hạn whitelist các domain được phép truy cập, loại bỏ `allow_origins=["*"]`.
 * **Phân quyền chặt chẽ:** Ẩn bộ switcher xem trước vai trò trên Header đối với người dùng thông thường, chỉ hiển thị với Quản trị viên thực tế.
 
-### 👤 6.2. Hồ sơ cá nhân & Đổi mật khẩu (Profile & Password Modal)
+### 👤 6.6. Hồ sơ cá nhân & Đổi mật khẩu (Profile & Password Modal)
 * **Chỉnh sửa hồ sơ:** Cho phép cập nhật họ và tên, số điện thoại chuẩn 10 chữ số, địa chỉ liên hệ.
 * **Đổi mật khẩu an toàn:** Yêu cầu xác minh chính xác mật khẩu hiện tại trước khi đổi, tích hợp thước đo độ mạnh mật khẩu (Password Strength Bar) trực quan.
 
-### 📜 6.3. Lịch sử Chẩn đoán Thông minh & Phân trang (History & Pagination)
+### 📜 6.7. Lịch sử Chẩn đoán Thông minh & Phân trang (History & Pagination)
 * **Bộ lọc & Tìm kiếm:** Tìm kiếm tức thì theo tên thú cưng hoặc tên bệnh da liễu; lọc theo trạng thái thẩm định *(Chờ duyệt / Bác sĩ đồng ý / Bác sĩ sửa lại)*.
 * **Phân trang linh hoạt (Pagination):** Tùy chọn 5, 10 hoặc 20 ca bệnh mỗi trang, điều hướng trang gọn gàng.
 * **Modal Chi tiết Ca bệnh (Case Detail Modal):** Bấm vào bất kỳ dòng nào để mở modal xem lại ảnh tổn thương độ phân giải cao, độ tin cậy AI, phân bố xác suất các bệnh liên quan, ghi chú theo dõi của chủ nuôi và nhận định chuyên môn của Bác sĩ.
 
-### 📈 6.4. Biểu đồ Đường Tiến triển Bệnh (Progression Line Chart)
+### 📈 6.8. Biểu đồ Đường Tiến triển Bệnh (Progression Line Chart)
 * **Tích hợp thư viện Recharts:** Vẽ biểu đồ đường thể hiện mức độ thuyên giảm bệnh và độ tin cậy AI qua các mốc thời gian thực tế *(Ngày 1 ➔ Ngày 3 ➔ Ngày 7 ➔ Ngày 14)*.
 * **Đa thú cưng:** Tự động vẽ riêng biệt từng đường cho từng bé cưng, có đường trung bình tham chiếu và tooltip chi tiết khi di chuột.
 
-### 🔔 6.5. Chuông Thông báo Thời gian thực (Real-time Notification Bell)
+### 🔔 6.9. Chuông Thông báo Thời gian thực (Real-time Notification Bell)
 * Tự động kiểm tra và thông báo cho Chủ nuôi ngay khi Bác sĩ hoàn tất thẩm định hồ sơ bệnh án hoặc đính chính chẩn đoán.
 
 ---
 
 ## 🩺 7. Lưu ý Y khoa (Medical Disclaimer)
 Kết quả từ hệ thống AI mang tính chất hỗ trợ chẩn đoán sơ bộ ban đầu giúp chủ nuôi phát hiện sớm nguy cơ. Chủ nuôi cần đưa thú cưng đến các phòng khám hoặc bệnh viện thú y uy tín để được xét nghiệm chuyên sâu và tiếp nhận phác đồ điều trị chính thức từ bác sĩ thú y.
+

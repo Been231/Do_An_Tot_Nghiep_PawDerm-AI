@@ -1,17 +1,18 @@
 import React from 'react';
+import ExportPdfButton from '../common/ExportPdfButton';
 
-export default function DiagnosisResult({ diagnosisResult }) {
+export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl }) {
   if (!diagnosisResult) {
     return (
       <div className="card diag-result-clean-card animate-fadeIn" style={{ minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
-        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', marginBottom: '16px' }}>
+        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary-orange-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', marginBottom: '16px' }}>
           🐾
         </div>
-        <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1c1917', marginBottom: '8px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>
           Sẵn sàng chẩn đoán AI
         </h3>
-        <p style={{ fontSize: '14px', color: '#78716c', maxWidth: '320px', lineHeight: '1.5', margin: 0 }}>
-          Vui lòng tải ảnh lên ở khung bên trái, chọn các triệu chứng quan sát được và nhấn <strong>"Bắt đầu chẩn đoán AI"</strong> để xem kết quả phân tích.
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '320px', lineHeight: '1.5', margin: 0 }}>
+          Vui lòng tải ảnh lên hoặc chụp trực tiếp bằng camera ở khung bên trái, chọn các triệu chứng quan sát được và nhấn <strong>"Bắt đầu chẩn đoán AI"</strong> để xem kết quả phân tích.
         </p>
       </div>
     );
@@ -36,8 +37,16 @@ export default function DiagnosisResult({ diagnosisResult }) {
   return (
     <div className="card diag-result-clean-card animate-fadeIn">
       {/* TIÊU ĐỀ THẺ: KẾT QUẢ CHẨN ĐOÁN (KHÔNG ICON) */}
-      <div className="card-header-clean">
+      <div className="card-header-clean result-header-with-action">
         <h3 className="card-title-plain">Kết quả chẩn đoán</h3>
+        <ExportPdfButton
+          id="btn-export-pdf-result"
+          record={result}
+          pet={pet}
+          owner={owner}
+          imageUrl={imageUrl}
+          compact
+        />
       </div>
 
       {/* DÒNG TÊN BỆNH KÈM DẤU TICK XANH LÁ */}

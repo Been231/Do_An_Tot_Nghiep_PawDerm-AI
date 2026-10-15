@@ -90,3 +90,32 @@ def get_dashboard_metrics():
     """Lấy số liệu thống kê tổng thể cho Bảng điều khiển Admin."""
     metrics = SupabaseService.get_dashboard_metrics()
     return {"success": True, "metrics": metrics}
+
+
+# ============================================================
+# Active Learning & Auto-Retrain Pipeline Endpoints
+# ============================================================
+
+from app.services.active_learning_service import ActiveLearningService
+
+@router.get("/retrain/status")
+def get_retrain_status():
+    """Lấy thông tin tiến độ, số mẫu hard samples và trạng thái huấn luyện hiện tại."""
+    status = ActiveLearningService.get_status()
+    return {"success": True, "status": status}
+
+
+@router.post("/retrain/trigger")
+def trigger_retrain(payload: Dict[str, Any] = Body(default={})):
+    """Kích hoạt tiến trình Active Learning Huấn luyện lại mô hình YOLOv8."""
+    triggered_by = payload.get("triggered_by", "Admin Quản trị viên")
+    result = ActiveLearningService.trigger_retrain(triggered_by=triggered_by)
+    return result
+
+
+@router.get("/retrain/history")
+def get_retrain_history():
+    """Lấy lịch sử các phiên bản mô hình đã Retrain (mAP50, Precision, Recall)."""
+    history = ActiveLearningService.get_history()
+    return {"success": True, "history": history}
+

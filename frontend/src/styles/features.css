@@ -1,0 +1,248 @@
+/* ============================================================
+   PawDerm AI — Features CSS (Live Camera HUD, Export PDF, Dark Mode, Active Learning)
+   ============================================================ */
+
+/* --- Nút Xuất PDF Bệnh Án --- */
+.pdf-export-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-export-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #2a9d8f 0%, #1e7a6f 100%);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 13.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(42, 157, 143, 0.25);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.btn-export-pdf:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(42, 157, 143, 0.35);
+  filter: brightness(1.08);
+}
+
+.btn-export-pdf:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-export-pdf:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+.btn-export-pdf.compact {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  border-radius: var(--radius-sm);
+}
+
+.pdf-export-error {
+  font-size: 12px;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+/* --- Nút Chuyển đổi Dark Mode / Light Mode --- */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  padding: 5px 12px 5px 6px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow-xs);
+  color: var(--text-main);
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--primary-teal);
+  box-shadow: 0 2px 8px rgba(42, 157, 143, 0.2);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-thumb.light {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.theme-toggle-thumb.dark {
+  background: #334155;
+  color: #38bdf8;
+}
+
+.theme-toggle-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* --- Dark Mode Fine-Tuning Overrides --- */
+[data-theme="dark"] body {
+  background-color: var(--bg-app);
+  color: var(--text-body);
+}
+
+[data-theme="dark"] .pawderm-app-root {
+  background: var(--bg-app);
+}
+
+[data-theme="dark"] .app-main-header {
+  background: rgba(30, 41, 59, 0.85);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .diag-result-clean-card,
+[data-theme="dark"] .admin-card,
+[data-theme="dark"] .doctor-card,
+[data-theme="dark"] .pet-card-modern,
+[data-theme="dark"] .user-dropdown-menu,
+[data-theme="dark"] .cd-modal,
+[data-theme="dark"] .pf-modal-clean {
+  background: var(--bg-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .role-quick-switcher {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .switcher-pill {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .switcher-pill:hover {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .user-profile-badge-clean {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .user-profile-badge-clean:hover {
+  border-color: var(--primary-teal);
+  background: #1e293b;
+}
+
+[data-theme="dark"] .dropdown-divider {
+  border-top-color: #334155;
+}
+
+[data-theme="dark"] .dropdown-item-btn:hover {
+  background: #334155;
+}
+
+[data-theme="dark"] .v-barchart-container {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .donut-track {
+  stroke: #334155;
+}
+
+[data-theme="dark"] .donut-center-text {
+  fill: #f8fafc;
+}
+
+[data-theme="dark"] .history-table-wrapper,
+[data-theme="dark"] .admin-table {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
+[data-theme="dark"] .history-table th,
+[data-theme="dark"] .admin-table th {
+  background: #141f33;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .history-table td,
+[data-theme="dark"] .admin-table td {
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .history-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="dark"] .cd-image.placeholder {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .cd-bar {
+  background: #334155;
+}
+
+[data-theme="dark"] .cd-tag {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .cd-note {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .pf-tab-btn {
+  color: #94a3b8;
+  border-bottom-color: transparent;
+}
+
+[data-theme="dark"] .pf-tab-btn.active {
+  color: var(--primary-teal);
+  border-bottom-color: var(--primary-teal);
+}
+
+[data-theme="dark"] .hero-banner-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-color: #334155 !important;
+}
