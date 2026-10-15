@@ -4,6 +4,7 @@ import DiagnosisResult from './DiagnosisResult';
 import LiveCameraModal from './LiveCameraModal';
 
 export default function DiagnosisTab({
+  currentUser = null,
   pets = [],
   selectedPetId,
   setSelectedPetId,

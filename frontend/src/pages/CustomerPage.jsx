@@ -289,6 +289,7 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
       {/* TAB 1: CHẨN ĐOÁN AI */}
       {activeSubTab === 'diagnose' && (
         <DiagnosisTab
+          currentUser={currentUser}
           pets={pets}
           selectedPetId={selectedPetId}
           setSelectedPetId={setSelectedPetId}
