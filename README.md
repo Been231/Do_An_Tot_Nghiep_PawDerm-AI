@@ -153,6 +153,7 @@ streamlit run streamlit_app/app.py
 | **Tuần này (Đợt 3)** | **Export PDF Bệnh Án Chuẩn Y Khoa** | - Xuất Phiếu kết quả khám da liễu A4 (PawDerm Clinical Report) chuẩn in & lưu PDF vector.<br>- Bao gồm mã bệnh án, ảnh tổn thương, gauge AI confidence, thẩm định & mộc điện tử Bác sĩ. | ✅ Hoàn thành |
 | **Tuần này (Đợt 3)** | **Giao Diện Tối Toàn Diện (Dark Mode)** | - Nút chuyển đổi Dark/Light mode trên Header, lưu trạng thái vào `localStorage`.<br>- Bảng màu Slate Dark hiện đại, tương phản chuẩn WCAG, dịu mắt khi theo dõi ban đêm. | ✅ Hoàn thành |
 | **Tuần này (Đợt 3)** | **Active Learning Auto-Retrain Pipeline** | - Tự động gom mẫu ca khó (Hard Samples) bị bác sĩ đính chính để fine-tune mô hình.<br>- Quản lý tiến trình Retrain YOLOv8, thanh tiến độ Epoch 1-20, Terminal log real-time.<br>- Bảng lịch sử các phiên bản mô hình (v1.0 -> v2.1-AL) cùng các chỉ số mAP50, Precision, Recall. | ✅ Hoàn thành |
+| **Mới cập nhật** | **Đặt Lịch Khám Bệnh Viện PawDerm & Bác Sĩ Khám Sơ Bộ** | - Thay thế tab Theo dõi tiến trình bằng Cổng **Đặt lịch khám trực tiếp tại Bệnh viện Thú Y PawDerm** (123 Nguyễn Văn Cừ, Q.5).<br>- Khách hàng chọn bé cưng, dịch vụ da liễu, bác sĩ, ngày giờ khám và gửi triệu chứng.<br>- Phân hệ Bác sĩ: Cung cấp khu vực **Khám sơ bộ & Dự đoán bệnh lâm sàng** trước khi khách đến viện, kèm mức độ nguy cơ và lời dặn dò chuẩn bị. | ✅ Hoàn thành |
 
 ---
 
@@ -195,9 +196,10 @@ streamlit run streamlit_app/app.py
 * **Phân trang linh hoạt (Pagination):** Tùy chọn 5, 10 hoặc 20 ca bệnh mỗi trang, điều hướng trang gọn gàng.
 * **Modal Chi tiết Ca bệnh (Case Detail Modal):** Bấm vào bất kỳ dòng nào để mở modal xem lại ảnh tổn thương độ phân giải cao, độ tin cậy AI, phân bố xác suất các bệnh liên quan, ghi chú theo dõi của chủ nuôi và nhận định chuyên môn của Bác sĩ.
 
-### 📈 6.8. Biểu đồ Đường Tiến triển Bệnh (Progression Line Chart)
-* **Tích hợp thư viện Recharts:** Vẽ biểu đồ đường thể hiện mức độ thuyên giảm bệnh và độ tin cậy AI qua các mốc thời gian thực tế *(Ngày 1 ➔ Ngày 3 ➔ Ngày 7 ➔ Ngày 14)*.
-* **Đa thú cưng:** Tự động vẽ riêng biệt từng đường cho từng bé cưng, có đường trung bình tham chiếu và tooltip chi tiết khi di chuột.
+### 🏥 6.8. Đặt Lịch Khám Tại Bệnh Viện PawDerm & Khám Sơ Bộ Bác Sĩ (Hospital Appointments & Pre-Diagnosis)
+* **Cổng Đặt Lịch Bệnh Viện Trực Tuyến:** Thay thế tab tiến triển cũ bằng hệ thống đặt lịch khám trực tiếp tại Bệnh viện Thú Y PawDerm (123 Nguyễn Văn Cừ, Quận 5, TP.HCM).
+* **Quy trình Khách hàng:** Chọn bé cưng, dịch vụ khám da liễu chuyên sâu, bác sĩ chuyên khoa phụ trách, ngày hẹn và khung giờ khám thuận tiện.
+* **Quy trình Bác sĩ Khám sơ bộ (Pre-diagnosis):** Bác sĩ thú y trực tiếp xem hồ sơ đặt lịch của khách hàng, tiến hành **Khám sơ bộ lâm sàng & Đưa ra dự đoán bệnh** (Nhiễm nấm da Ringworm, Ghẻ Demodex, Viêm da dị ứng...), đánh giá mức độ khẩn cấp và gửi lời dặn dò chuẩn bị trước khi khách đưa thú cưng đến bệnh viện.
 
 ### 🔔 6.9. Chuông Thông báo Thời gian thực (Real-time Notification Bell)
 * Tự động kiểm tra và thông báo cho Chủ nuôi ngay khi Bác sĩ hoàn tất thẩm định hồ sơ bệnh án hoặc đính chính chẩn đoán.

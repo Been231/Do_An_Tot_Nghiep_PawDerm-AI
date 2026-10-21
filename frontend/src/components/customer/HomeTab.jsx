@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Sparkles, Plus, Heart, Activity, Camera, Stethoscope,
   ShieldCheck, AlertTriangle, ArrowRight, ChevronRight,
-  Zap, Bell, LogIn, UserPlus
+  Zap, Bell, LogIn, UserPlus, CalendarCheck
 } from 'lucide-react';
 
 export default function HomeTab({
@@ -12,7 +12,7 @@ export default function HomeTab({
   onStartDiagnose,
   onOpenAddPetModal,
   onGoToPets,
-  onGoToProgression,
+  onGoToAppointments,
   onRequireAuth
 }) {
   const isGuest = !currentUser;
@@ -186,11 +186,11 @@ export default function HomeTab({
               <div className="ht-stat-glow ht-glow-teal" />
             </div>
 
-            <div className="ht-stat-card ht-stat-amber" onClick={onGoToProgression} role="button" tabIndex={0}>
-              <div className="ht-stat-icon"><AlertTriangle size={22} /></div>
+            <div className="ht-stat-card ht-stat-amber" onClick={onGoToAppointments} role="button" tabIndex={0} title="Đặt lịch khám trực tiếp tại Bệnh viện PawDerm">
+              <div className="ht-stat-icon"><CalendarCheck size={22} /></div>
               <div className="ht-stat-body">
-                <span className="ht-stat-num">{activeTreatments}</span>
-                <span className="ht-stat-lbl">Ca đang theo dõi</span>
+                <span className="ht-stat-num">Bệnh viện</span>
+                <span className="ht-stat-lbl">Đặt lịch khám PawDerm</span>
               </div>
               <ChevronRight size={16} className="ht-stat-arrow" />
               <div className="ht-stat-glow ht-glow-amber" />

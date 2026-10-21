@@ -26,7 +26,8 @@ from app.routers import (
     diagnosis as diagnosis_module,
     doctor as doctor_module,
     admin as admin_module,
-    notifications as notifications_module
+    notifications as notifications_module,
+    appointments as appointments_module
 )
 
 app = FastAPI(
@@ -62,6 +63,7 @@ app.include_router(diagnosis_module.router)
 app.include_router(doctor_module.router)
 app.include_router(admin_module.router)
 app.include_router(notifications_module.router)
+app.include_router(appointments_module.router)
 
 
 @app.get("/api/health", tags=["Health"])

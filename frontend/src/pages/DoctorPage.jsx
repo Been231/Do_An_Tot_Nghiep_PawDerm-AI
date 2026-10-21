@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, CalendarCheck, Sparkles } from 'lucide-react';
 import { doctorService } from '../services/doctorService';
 import { authService } from '../services/authService';
 
@@ -7,8 +7,10 @@ import DoctorHeader from '../components/doctor/DoctorHeader';
 import DoctorReviewQueue from '../components/doctor/DoctorReviewQueue';
 import DoctorCaseDetail, { COMMON_DISEASES_OPTIONS } from '../components/doctor/DoctorCaseDetail';
 import DoctorProfileModal from '../components/doctor/DoctorProfileModal';
+import DoctorAppointmentQueue from '../components/doctor/DoctorAppointmentQueue';
 
 export default function DoctorPage({ currentUser, onProfileUpdated }) {
+  const [doctorActiveTab, setDoctorActiveTab] = useState('appointments'); // 'appointments' | 'review_queue'
   const [queue, setQueue] = useState([]);
   const [stats, setStats] = useState({ total_reviewed: 0, agreed_count: 0, corrected_count: 0, agreement_rate: 100 });
   const [loading, setLoading] = useState(false);
@@ -138,44 +140,71 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
         onOpenProfileEdit={() => setShowProfileEdit(true)}
       />
 
-      {/* THÔNG BÁO BẢO MẬT DỮ LIỆU */}
-      <div className="privacy-banner-strip mb-4">
-        <ShieldAlert size={18} className="text-warning mr-2" />
-        <span>
-          <strong>BẢO MẬT Y TẾ THÚ Y:</strong> Toàn bộ thông tin cá nhân của khách hàng (họ tên, SĐT, địa chỉ) 
-          đã được hệ thống tự động mã hóa & ẩn danh nhằm tuân thủ quy tắc riêng tư. Bác sĩ chỉ xem đặc điểm lâm sàng của ca bệnh.
-        </span>
+      {/* THANH CHUYỂN ĐỔI TAB LÀM VIỆC CỦA BÁC SĨ */}
+      <div className="sub-nav-tabs mb-4">
+        <button
+          className={`sub-tab-btn ${doctorActiveTab === 'appointments' ? 'active' : ''}`}
+          onClick={() => setDoctorActiveTab('appointments')}
+        >
+          <CalendarCheck size={16} />
+          <span>Lịch Hẹn Khám & Khám Sơ Bộ Khách Hàng</span>
+        </button>
+        <button
+          className={`sub-tab-btn ${doctorActiveTab === 'review_queue' ? 'active' : ''}`}
+          onClick={() => setDoctorActiveTab('review_queue')}
+        >
+          <Sparkles size={16} />
+          <span>Thẩm Định Chẩn Đoán AI ({queue.length})</span>
+        </button>
       </div>
 
-      {/* KHUNG THẨM ĐỊNH CA BỆNH */}
-      <div className="doctor-review-layout">
-        {/* CỘT TRÁI: HÀNG ĐỢI CA BỆNH */}
-        <DoctorReviewQueue
-          queue={queue}
-          loading={loading}
-          selectedCase={selectedCase}
-          onSelectCase={(item) => {
-            setSelectedCase(item);
-            setIsEditing(false);
-          }}
-          onRefresh={loadQueue}
-        />
+      {/* TAB 1: LỊCH HẸN & KHÁM SƠ BỘ KHÁCH HÀNG */}
+      {doctorActiveTab === 'appointments' && (
+        <DoctorAppointmentQueue currentUser={currentUser} />
+      )}
 
-        {/* CỘT PHẢI: CHI TIẾT CA BỆNH & FORM THẨM ĐỊNH (RE-LABELING) */}
-        <DoctorCaseDetail
-          selectedCase={selectedCase}
-          currentUser={currentUser}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          correctedDisease={correctedDisease}
-          setCorrectedDisease={setCorrectedDisease}
-          doctorNotes={doctorNotes}
-          setDoctorNotes={setDoctorNotes}
-          submittingReview={submittingReview}
-          handleAgreeWithAI={handleAgreeWithAI}
-          handleSaveCorrection={handleSaveCorrection}
-        />
-      </div>
+      {/* TAB 2: THẨM ĐỊNH CA BỆNH AI */}
+      {doctorActiveTab === 'review_queue' && (
+        <>
+          {/* THÔNG BÁO BẢO MẬT DỮ LIỆU */}
+          <div className="privacy-banner-strip mb-4">
+            <ShieldAlert size={18} className="text-warning mr-2" />
+            <span>
+              <strong>BẢO MẬT Y TẾ THÚ Y:</strong> Toàn bộ thông tin cá nhân của khách hàng (họ tên, SĐT, địa chỉ) 
+              đã được hệ thống tự động mã hóa & ẩn danh nhằm tuân thủ quy tắc riêng tư. Bác sĩ chỉ xem đặc điểm lâm sàng của ca bệnh.
+            </span>
+          </div>
+
+          <div className="doctor-review-layout">
+            {/* CỘT TRÁI: HÀNG ĐỢI CA BỆNH */}
+            <DoctorReviewQueue
+              queue={queue}
+              loading={loading}
+              selectedCase={selectedCase}
+              onSelectCase={(item) => {
+                setSelectedCase(item);
+                setIsEditing(false);
+              }}
+              onRefresh={loadQueue}
+            />
+
+            {/* CỘT PHẢI: CHI TIẾT CA BỆNH & FORM THẨM ĐỊNH (RE-LABELING) */}
+            <DoctorCaseDetail
+              selectedCase={selectedCase}
+              currentUser={currentUser}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              correctedDisease={correctedDisease}
+              setCorrectedDisease={setCorrectedDisease}
+              doctorNotes={doctorNotes}
+              setDoctorNotes={setDoctorNotes}
+              submittingReview={submittingReview}
+              handleAgreeWithAI={handleAgreeWithAI}
+              handleSaveCorrection={handleSaveCorrection}
+            />
+          </div>
+        </>
+      )}
 
       {/* MODAL CẬP NHẬT HỒ SƠ BÁC SĨ */}
       <DoctorProfileModal

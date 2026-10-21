@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Sparkles, Heart, Clock, Activity, LogIn, UserPlus } from 'lucide-react';
+import { Home, Sparkles, Heart, Clock, CalendarCheck, LogIn, UserPlus } from 'lucide-react';
 import { petService } from '../services/petService';
 import { diagnosisService } from '../services/diagnosisService';
 
 import HomeTab from '../components/customer/HomeTab';
 import DiagnosisTab from '../components/customer/DiagnosisTab';
-import ProgressionTab from '../components/customer/ProgressionTab';
+import AppointmentBookingTab from '../components/customer/AppointmentBookingTab';
 import PetManagementTab from '../components/customer/PetManagementTab';
 import HistoryTab from '../components/customer/HistoryTab';
 import AddPetModal from '../components/customer/AddPetModal';
@@ -29,7 +29,7 @@ function GuestPromptCard({ title, desc, onRequireAuth }) {
 }
 
 export default function CustomerPage({ currentUser, onRequireAuth }) {
-  const [activeSubTab, setActiveSubTab] = useState('home'); // 'home' | 'diagnose' | 'progression' | 'pets' | 'history'
+  const [activeSubTab, setActiveSubTab] = useState('home'); // 'home' | 'diagnose' | 'appointments' | 'pets' | 'history'
   
   // State quản lý thú cưng
   const [pets, setPets] = useState([]);
@@ -250,11 +250,11 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
           <span>Chẩn đoán AI</span>
         </button>
         <button 
-          className={`sub-tab-btn ${activeSubTab === 'progression' ? 'active' : ''}`}
-          onClick={() => setActiveSubTab('progression')}
+          className={`sub-tab-btn ${activeSubTab === 'appointments' ? 'active' : ''}`}
+          onClick={() => setActiveSubTab('appointments')}
         >
-          <Activity size={16} />
-          <span>Theo dõi tiến triển</span>
+          <CalendarCheck size={16} />
+          <span>Đặt lịch khám Bệnh viện</span>
         </button>
         <button 
           className={`sub-tab-btn ${activeSubTab === 'pets' ? 'active' : ''}`}
@@ -281,7 +281,7 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
           onStartDiagnose={handleStartDiagnose}
           onOpenAddPetModal={handleOpenAddPet}
           onGoToPets={() => setActiveSubTab('pets')}
-          onGoToProgression={() => setActiveSubTab('progression')}
+          onGoToAppointments={() => setActiveSubTab('appointments')}
           onRequireAuth={onRequireAuth}
         />
       )}
@@ -310,21 +310,20 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
         />
       )}
 
-      {/* TAB 2: TIẾN TRIỂN THEO NGÀY */}
-      {activeSubTab === 'progression' && (
+      {/* TAB 2: ĐẶT LỊCH KHÁM TẠI BỆNH VIỆN PAWDERM */}
+      {activeSubTab === 'appointments' && (
         !currentUser ? (
           <GuestPromptCard
-            title="Theo Dõi Tiến Triển Hồi Phục Bệnh Da"
-            desc="Đăng nhập để theo dõi sự cải thiện của vùng da tổn thương qua các ngày (Ngày 1, Ngày 7, Ngày 14...) và nhận phác đồ điều chỉnh từ bác sĩ thú y."
+            title="Đặt Lịch Khám Tại Bệnh Viện Thú Y PawDerm"
+            desc="Đăng nhập để đặt lịch khám trực tiếp với Bác sĩ chuyên khoa, nhận kết quả khám sơ bộ và hướng dẫn chuẩn bị điều trị."
             onRequireAuth={onRequireAuth}
           />
         ) : (
-          <ProgressionTab
+          <AppointmentBookingTab
+            currentUser={currentUser}
             pets={pets}
-            selectedProgressionPet={selectedProgressionPet}
-            setSelectedProgressionPet={setSelectedProgressionPet}
-            progressionRecords={progressionRecords}
-            onGoToDiagnose={() => setActiveSubTab('diagnose')}
+            onOpenAddPetModal={handleOpenAddPet}
+            onRequireAuth={onRequireAuth}
           />
         )
       )}
