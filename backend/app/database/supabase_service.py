@@ -284,6 +284,49 @@ class SupabaseService:
             print(f"[WARN] Loi doi mat khau: {e}")
             return {"success": False, "error": "Không đổi được mật khẩu, vui lòng thử lại sau!"}
 
+    @classmethod
+    def find_user_by_email(cls, email: str) -> Optional[Dict[str, Any]]:
+        """Tìm tài khoản theo địa chỉ Gmail."""
+        client = get_supabase_client()
+        norm_email = (email or "").strip().lower()
+        if not norm_email:
+            return None
+        if client:
+            try:
+                res = client.table("users").select("id, username, full_name, email, role, status").eq("email", norm_email).limit(1).execute()
+                if res.data:
+                    return res.data[0]
+            except Exception as e:
+                print(f"[WARN] Loi tim user theo email: {e}")
+        # Mock users check
+        mock_emails = {
+            "khachhang@gmail.com": {"id": "8cb7a542-d6aa-46ba-bca4-d4bcf84ec13c", "username": "khachhang", "email": "khachhang@gmail.com"},
+            "bacsi@pawderm.vn": {"id": "bacsi-uuid-0000-0000-000000000001", "username": "bacsi", "email": "bacsi@pawderm.vn"},
+            "admin@pawderm.vn": {"id": "admin-uuid-0000-0000-000000000001", "username": "admin", "email": "admin@pawderm.vn"},
+        }
+        return mock_emails.get(norm_email)
+
+    @classmethod
+    def reset_password_by_email(cls, email: str, new_password: str) -> Dict[str, Any]:
+        """Đặt lại mật khẩu mới cho tài khoản qua Gmail (băm bcrypt)."""
+        client = get_supabase_client()
+        norm_email = (email or "").strip().lower()
+        if not norm_email:
+            return {"success": False, "error": "Vui lòng nhập địa chỉ Gmail!"}
+        hashed_pw = hash_password(new_password)
+        if client:
+            try:
+                res = client.table("users").select("id, username").eq("email", norm_email).limit(1).execute()
+                if not res.data:
+                    return {"success": False, "error": "Không tìm thấy tài khoản nào gắn với Gmail này!"}
+                user_id = res.data[0]["id"]
+                client.table("users").update({"password": hashed_pw}).eq("id", user_id).execute()
+                return {"success": True, "username": res.data[0].get("username")}
+            except Exception as e:
+                print(f"[WARN] Loi reset password: {e}")
+                return {"success": False, "error": f"Lỗi cập nhật mật khẩu: {e}"}
+        return {"success": True, "username": "khachhang"}
+
     # ──────────────────────────────────────────────────────────────────────────
     # 2. PHÂN HỆ KHÁCH HÀNG: HỒ SƠ THÚ CƯNG (PETS)
     # ──────────────────────────────────────────────────────────────────────────

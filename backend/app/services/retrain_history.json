@@ -1,0 +1,41 @@
+[
+  {
+    "run_id": "RUN-AL-003",
+    "version": "v2.2-AL",
+    "triggered_by": "Quản trị viên (Admin UI)",
+    "created_at": "2026-10-22T00:08:47",
+    "samples_count": 3,
+    "hard_samples": 1,
+    "mAP50": 89.8,
+    "precision": 91.8,
+    "recall": 88.5,
+    "status": "completed",
+    "notes": "Tự động retrain với 1 mẫu phản hồi từ bác sĩ thú y. Cải thiện nhận diện nấm và ghẻ da."
+  },
+  {
+    "run_id": "RUN-AL-001",
+    "version": "v1.0-Base",
+    "triggered_by": "System Init",
+    "created_at": "2026-02-15T08:30:00",
+    "samples_count": 1200,
+    "hard_samples": 0,
+    "mAP50": 84.2,
+    "precision": 85.1,
+    "recall": 82.4,
+    "status": "completed",
+    "notes": "Mô hình YOLOv8 Nano ban đầu huấn luyện trên tập dữ liệu PawDerm công khai."
+  },
+  {
+    "run_id": "RUN-AL-002",
+    "version": "v2.0-AL",
+    "triggered_by": "Bác sĩ thẩm định lâm sàng",
+    "created_at": "2026-03-20T14:15:00",
+    "samples_count": 1340,
+    "hard_samples": 28,
+    "mAP50": 87.8,
+    "precision": 89.0,
+    "recall": 86.5,
+    "status": "completed",
+    "notes": "Đợt Retrain thứ nhất với 28 ca khó (Hard Samples) do bác sĩ thú y chỉnh sửa nhãn."
+  }
+]

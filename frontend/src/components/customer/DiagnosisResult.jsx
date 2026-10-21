@@ -1,7 +1,8 @@
 import React from 'react';
+import { CalendarCheck } from 'lucide-react';
 import ExportPdfButton from '../common/ExportPdfButton';
 
-export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl }) {
+export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl, onBookAppointment }) {
   if (!diagnosisResult) {
     return (
       <div className="card diag-result-clean-card animate-fadeIn" style={{ minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
@@ -137,6 +138,36 @@ export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl 
           </p>
         </div>
       </div>
+
+      {/* NÚT TẮT ĐẶT LỊCH KHÁM BỆNH VIỆN CHO BÉ */}
+      {onBookAppointment && (
+        <div className="result-booking-action mt-4 pt-3" style={{ borderTop: '1px dashed var(--border-subtle)' }}>
+          <button
+            type="button"
+            id="btn-shortcut-book-apt"
+            className="btn-terracotta-full"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '12px 20px',
+              fontSize: '14px',
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)'
+            }}
+            onClick={() => onBookAppointment({
+              pet,
+              diseaseName: result.disease_name_vi,
+              notes: `Chẩn đoán AI phát hiện nguy cơ: ${result.disease_name_vi} (Độ tin cậy: ${confidenceVal}%). Cần bác sĩ kiểm tra và soi da trực tiếp.`
+            })}
+          >
+            <CalendarCheck size={18} />
+            <span>Đặt Lịch Khám Tại Bệnh Viện PawDerm Cho Bé Ngay</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

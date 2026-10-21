@@ -57,6 +57,14 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
   const [historyRecords, setHistoryRecords] = useState([]);
   const [selectedProgressionPet, setSelectedProgressionPet] = useState('all');
 
+  // Dữ liệu đặt lịch chuyển tiếp từ kết quả chẩn đoán AI
+  const [bookingInitialData, setBookingInitialData] = useState(null);
+
+  const handleBookFromDiagnosis = (data) => {
+    setBookingInitialData(data);
+    setActiveSubTab('appointments');
+  };
+
   useEffect(() => {
     if (currentUser?.id) {
       loadPets();
@@ -307,6 +315,7 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
           analyzing={analyzing}
           handleRunDiagnosis={handleRunDiagnosis}
           diagnosisResult={diagnosisResult}
+          onBookAppointment={handleBookFromDiagnosis}
         />
       )}
 
@@ -322,6 +331,7 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
           <AppointmentBookingTab
             currentUser={currentUser}
             pets={pets}
+            initialBookingData={bookingInitialData}
             onOpenAddPetModal={handleOpenAddPet}
             onRequireAuth={onRequireAuth}
           />

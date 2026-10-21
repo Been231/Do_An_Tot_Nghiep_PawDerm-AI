@@ -56,13 +56,13 @@
     "appointment_time": "14:00 - 15:00",
     "hospital_address": "Bệnh viện Thú Y PawDerm, 123 Nguyễn Văn Cừ, Quận 5, TP.HCM",
     "notes": "Da vùng bụng nổi mẩn đỏ sau khi đổi sang thức ăn hạt mới, AI báo 85% Viêm da dị ứng.",
-    "status": "pending",
-    "doctor_id": "",
-    "doctor_name": "Bác sĩ phụ trách lâm sàng PawDerm",
-    "doctor_pre_diagnosis": "",
+    "status": "confirmed",
+    "doctor_id": "450f4a18-97c6-401b-968e-bc76fe460e1e",
+    "doctor_name": "BS. CKII Nguyen Thi Mai Huong",
+    "doctor_pre_diagnosis": "Nhiễm nấm da sợi khoáng (Ringworm / Dermatophytosis)",
     "severity_level": "Chờ bác sĩ thẩm định",
-    "doctor_advice": "",
+    "doctor_advice": "Không tắm xà phòng hoặc bôi thuốc lạ trong 24h trước khi đến viện để bác sĩ cạo da soi nấm chuẩn xác. Đeo loa chống liếm tránh làm loét sâu hơn.",
     "created_at": "2026-10-21T08:30:00",
-    "confirmed_at": null
+    "confirmed_at": "2026-10-22T00:11:42.585222"
   }
 ]

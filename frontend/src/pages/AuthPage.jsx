@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import petMascot from '../assets/pet_companion.jpg';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
+import ForgotPasswordForm from '../components/auth/ForgotPasswordForm';
 import '../styles/authSlider.css';
 
 export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal = false, onClose }) {
@@ -36,6 +37,12 @@ export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal
         ? `🎉 Đăng ký thành công tài khoản cho bé "${petName}"! Vui lòng nhập mật khẩu vừa tạo để xác nhận đăng nhập vào hệ thống.`
         : '🎉 Đăng ký tài khoản thành công! Vui lòng nhập mật khẩu vừa tạo để xác nhận đăng nhập vào hệ thống.'
     );
+    setActiveTab('login');
+  };
+
+  const handleResetSuccess = (username) => {
+    setRegisteredUsername(username || '');
+    setRegistrationNotice('🎉 Đặt lại mật khẩu thành công! Vui lòng nhập mật khẩu mới để đăng nhập.');
     setActiveTab('login');
   };
 
@@ -74,7 +81,7 @@ export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal
         </div>
       </div>
 
-      {/* CỘT PHẢI: FORM ĐĂNG NHẬP / ĐĂNG KÝ */}
+      {/* CỘT PHẢI: FORM ĐĂNG NHẬP / ĐĂNG KÝ / QUÊN MẬT KHẨU */}
       <div className="auth-form-column">
         {activeTab === 'login' ? (
           <LoginForm 
@@ -83,13 +90,22 @@ export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal
               setRegistrationNotice('');
               setActiveTab('register');
             }} 
+            onSwitchToForgot={() => {
+              setRegistrationNotice('');
+              setActiveTab('forgot');
+            }}
             initialUsername={registeredUsername}
             registrationNotice={registrationNotice}
           />
-        ) : (
+        ) : activeTab === 'register' ? (
           <RegisterForm 
             onRegisterSuccess={handleRegisterSuccess} 
             onSwitchToLogin={() => setActiveTab('login')} 
+          />
+        ) : (
+          <ForgotPasswordForm
+            onSwitchToLogin={() => setActiveTab('login')}
+            onResetSuccess={handleResetSuccess}
           />
         )}
       </div>

@@ -8,6 +8,7 @@ import { appointmentService } from '../../services/appointmentService';
 export default function AppointmentBookingTab({
   currentUser,
   pets = [],
+  initialBookingData = null,
   onOpenAddPetModal,
   onRequireAuth
 }) {
@@ -55,6 +56,25 @@ export default function AppointmentBookingTab({
       setSelectedPetId(pets[0].id);
     }
   }, [pets]);
+
+  // Nhận thông tin chuyển tiếp từ Chẩn đoán AI
+  useEffect(() => {
+    if (initialBookingData) {
+      if (initialBookingData.pet?.id) {
+        setSelectedPetId(initialBookingData.pet.id);
+      } else if (initialBookingData.pet?.name) {
+        setCustomPetName(initialBookingData.pet.name);
+      }
+      if (initialBookingData.notes) {
+        setNotes(initialBookingData.notes);
+      }
+      setServiceTitle('Khám sơ bộ & Hội chẩn sau kết quả AI');
+      setFeedbackMsg({
+        type: 'info',
+        text: `Đã tự động điền thông tin bé "${initialBookingData.pet?.name || 'cưng'}" và kết quả chẩn đoán vào phiếu hẹn!`
+      });
+    }
+  }, [initialBookingData]);
 
   const loadAppointments = async () => {
     setLoading(true);

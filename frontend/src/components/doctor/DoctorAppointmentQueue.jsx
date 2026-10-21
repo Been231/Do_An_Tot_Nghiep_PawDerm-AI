@@ -10,6 +10,7 @@ export default function DoctorAppointmentQueue({ currentUser }) {
   const [loading, setLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showPreDiagModal, setShowPreDiagModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   // Form State khám sơ bộ
   const [preDiagnosis, setPreDiagnosis] = useState('Nhiễm nấm da sợi khoáng (Ringworm / Dermatophytosis)');
@@ -46,6 +47,11 @@ export default function DoctorAppointmentQueue({ currentUser }) {
       setLoading(false);
     }
   };
+
+  const filteredAppointments = appointments.filter((apt) => {
+    if (statusFilter === 'all') return true;
+    return apt.status === statusFilter;
+  });
 
   const handleOpenPreDiagModal = (apt) => {
     setSelectedAppointment(apt);
@@ -116,23 +122,55 @@ export default function DoctorAppointmentQueue({ currentUser }) {
         </button>
       </div>
 
+      {/* THANH LỌC TRẠNG THÁI CA HẸN */}
+      <div className="doctor-filter-tabs-bar mb-3" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          className={`btn-filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('all')}
+        >
+          Tất cả ({appointments.length})
+        </button>
+        <button
+          type="button"
+          className={`btn-filter-pill ${statusFilter === 'pending' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('pending')}
+        >
+          ⏳ Chờ khám sơ bộ ({appointments.filter(a => a.status === 'pending').length})
+        </button>
+        <button
+          type="button"
+          className={`btn-filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('confirmed')}
+        >
+          ✓ Đã có chẩn đoán sơ bộ ({appointments.filter(a => a.status === 'confirmed').length})
+        </button>
+        <button
+          type="button"
+          className={`btn-filter-pill ${statusFilter === 'completed' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('completed')}
+        >
+          🩺 Đã hoàn thành ({appointments.filter(a => a.status === 'completed').length})
+        </button>
+      </div>
+
       {/* DANH SÁCH THẺ LỊCH HẸN */}
       {loading ? (
         <div className="card text-center p-4">
           <div className="donut-spinner mx-auto mb-2" />
           <p style={{ color: 'var(--text-muted)', fontSize: '13.5px' }}>Đang tải lịch hẹn từ khách hàng...</p>
         </div>
-      ) : appointments.length === 0 ? (
+      ) : filteredAppointments.length === 0 ? (
         <div className="card text-center p-4" style={{ borderRadius: 'var(--radius-lg)' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🐾🗓️</div>
-          <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>Không có lịch hẹn nào đang chờ</h4>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>Không có lịch hẹn nào phù hợp</h4>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-            Tất cả các ca đặt lịch khám từ khách hàng đã được tiếp nhận và xử lý đầy đủ.
+            Không tìm thấy ca khám nào thuộc trạng thái đang chọn.
           </p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '18px' }}>
-          {appointments.map((apt) => (
+          {filteredAppointments.map((apt) => (
             <div
               key={apt.id}
               className="card doctor-apt-card animate-fadeIn"

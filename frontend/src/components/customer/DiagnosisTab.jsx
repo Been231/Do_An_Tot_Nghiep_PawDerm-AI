@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload } from 'lucide-react';
+import { Camera, Upload, HelpCircle, X } from 'lucide-react';
 import DiagnosisResult from './DiagnosisResult';
 import LiveCameraModal from './LiveCameraModal';
+import CameraGuide from './CameraGuide';
 
 export default function DiagnosisTab({
   currentUser = null,
@@ -17,11 +18,13 @@ export default function DiagnosisTab({
   diagError,
   analyzing,
   handleRunDiagnosis,
-  diagnosisResult
+  diagnosisResult,
+  onBookAppointment
 }) {
   const fileInputRef = useRef(null);
   const [selectedSpecies, setSelectedSpecies] = useState('dog');
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   // Lọc danh sách thú cưng theo loài
   const filteredPets = pets.filter(p => {
@@ -119,8 +122,30 @@ export default function DiagnosisTab({
 
         {/* THẺ 2: PHÂN TÍCH HÌNH ẢNH AI */}
         <div className="card diag-image-card mt-3">
-          <div className="card-header-clean">
+          <div className="card-header-clean flex-between" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 className="card-title-plain">Phân tích hình ảnh AI</h3>
+            <button
+              type="button"
+              className="btn-camera-guide-trigger"
+              onClick={() => setShowGuideModal(true)}
+              title="Xem hướng dẫn chụp ảnh đạt chuẩn y tế"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '12.5px',
+                fontWeight: '600',
+                color: 'var(--primary-teal)',
+                background: 'rgba(42, 157, 143, 0.08)',
+                border: '1px solid rgba(42, 157, 143, 0.25)',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                cursor: 'pointer'
+              }}
+            >
+              <HelpCircle size={14} />
+              <span>Chuẩn chụp ảnh y tế</span>
+            </button>
           </div>
 
           {/* KHUNG NGẮM CAMERA VIEWPORT HUD */}
@@ -197,7 +222,6 @@ export default function DiagnosisTab({
               if (handleCapturedImage) {
                 handleCapturedImage(file, dataUrl);
               } else if (file) {
-                // Fallback nếu gọi qua synthetic event
                 handleImageChange?.({ target: { files: [file] } });
               }
             }}
@@ -249,8 +273,50 @@ export default function DiagnosisTab({
           pet={selectedPet}
           owner={currentUser}
           imageUrl={imagePreview}
+          onBookAppointment={onBookAppointment}
         />
       </div>
+
+      {/* MODAL HƯỚNG DẪN CĂN GÓC CHỤP ẢNH Y TẾ */}
+      {showGuideModal && (
+        <div className="auth-modal-overlay" onClick={() => setShowGuideModal(false)}>
+          <div className="card modal-dialog-box animate-fadeIn" style={{ maxWidth: '620px', width: '92%', padding: '24px', borderRadius: 'var(--radius-lg)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="flex-between mb-3" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                📸 Hướng Dẫn Căn Khung Chụp Chuẩn Y Tế
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(false)}
+                title="Đóng"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <CameraGuide
+              imagePreview={imagePreview}
+              onFileSelect={(e) => {
+                handleImageChange(e);
+                setShowGuideModal(false);
+              }}
+              fileInputRef={fileInputRef}
+            />
+
+            <div style={{ textAlign: 'right', marginTop: '16px' }}>
+              <button
+                type="button"
+                className="btn-terracotta-full"
+                onClick={() => setShowGuideModal(false)}
+                style={{ padding: '8px 20px', width: 'auto', display: 'inline-block' }}
+              >
+                Đã hiểu & Quay lại chụp ảnh
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

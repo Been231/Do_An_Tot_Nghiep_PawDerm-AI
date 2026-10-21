@@ -155,3 +155,50 @@ def change_password(payload: Dict[str, Any] = Body(...)):
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error"))
     return {"success": True, "message": "Đổi mật khẩu thành công!"}
+
+
+@router.post("/forgot-password/send-otp")
+def forgot_password_send_otp(payload: Dict[str, Any] = Body(...)):
+    """Quên mật khẩu - Bước 1: Gửi mã OTP xác thực tới Gmail của tài khoản."""
+    email = email_otp.normalize_email(payload.get("email", ""))
+    if not email_otp.is_valid_gmail(email):
+        raise HTTPException(status_code=400, detail="Địa chỉ Gmail không hợp lệ! (ví dụ: tenban@gmail.com)")
+    
+    # Kiểm tra xem Gmail này có tài khoản trong hệ thống không
+    user = SupabaseService.find_user_by_email(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản nào được đăng ký bằng Gmail này!")
+
+    result = email_otp.send_otp(email)
+    if not result.get("success"):
+        status = 429 if result.get("retry_after") else 400
+        raise HTTPException(status_code=status, detail=result.get("error"))
+    return result
+
+
+@router.post("/forgot-password/reset")
+def forgot_password_reset(payload: Dict[str, Any] = Body(...)):
+    """Quên mật khẩu - Bước 2: Xác nhận OTP và đặt mật khẩu mới."""
+    email = email_otp.normalize_email(payload.get("email", ""))
+    token = payload.get("verification_token", "")
+    new_password = payload.get("new_password", "")
+
+    if not email or not token or not new_password:
+        raise HTTPException(status_code=400, detail="Thiếu thông tin đặt lại mật khẩu bắt buộc!")
+    if len(new_password) < MIN_PASSWORD_LENGTH:
+        raise HTTPException(status_code=400, detail=f"Mật khẩu mới phải có ít nhất {MIN_PASSWORD_LENGTH} ký tự!")
+    
+    if not email_otp.peek_verification_token(email, token):
+        raise HTTPException(status_code=400, detail="Mã xác thực đã hết hạn hoặc không hợp lệ. Vui lòng nhận mã mới!")
+
+    res = SupabaseService.reset_password_by_email(email, new_password)
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("error", "Lỗi đặt lại mật khẩu!"))
+
+    # Tiêu thụ token sau khi reset thành công
+    email_otp.consume_verification_token(email, token)
+    return {
+        "success": True, 
+        "username": res.get("username", ""),
+        "message": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới."
+    }

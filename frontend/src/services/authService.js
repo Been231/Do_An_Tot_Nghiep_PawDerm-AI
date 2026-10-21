@@ -113,6 +113,30 @@ export const authService = {
   },
 
   /**
+   * Quên mật khẩu - Bước 1: Gửi mã OTP xác thực tới Gmail
+   */
+  async sendForgotPasswordOtp(email) {
+    try {
+      return await postJson('/auth/forgot-password/send-otp', { email });
+    } catch (err) {
+      if (isNetworkError(err)) throw new Error('Không kết nối được máy chủ để gửi mã OTP khôi phục!');
+      throw err;
+    }
+  },
+
+  /**
+   * Quên mật khẩu - Bước 2: Đặt lại mật khẩu mới
+   */
+  async resetPassword({ email, verification_token, new_password }) {
+    try {
+      return await postJson('/auth/forgot-password/reset', { email, verification_token, new_password });
+    } catch (err) {
+      if (isNetworkError(err)) throw new Error('Không kết nối được máy chủ để đặt lại mật khẩu!');
+      throw err;
+    }
+  },
+
+  /**
    * Cập nhật thông tin cá nhân hoặc phòng khám Bác sĩ
    */
   async updateProfile(userId, updates) {
