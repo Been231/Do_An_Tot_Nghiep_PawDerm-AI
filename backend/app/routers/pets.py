@@ -2,7 +2,7 @@
 PawDerm AI - Pet Management Router
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Query, Body
 from app.database.supabase_service import SupabaseService
 
@@ -10,8 +10,10 @@ router = APIRouter(prefix="/api/pets", tags=["Pets"])
 
 
 @router.get("")
-def get_pets(user_id: str = Query(...)):
+def get_pets(user_id: Optional[str] = Query(None)):
     """Lấy danh sách hồ sơ thú cưng của khách hàng."""
+    if not user_id:
+        return {"success": True, "pets": []}
     pets = SupabaseService.get_user_pets(user_id)
     return {"success": True, "pets": pets}
 
