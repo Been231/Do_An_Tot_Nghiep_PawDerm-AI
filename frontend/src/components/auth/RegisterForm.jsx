@@ -219,10 +219,14 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
 
       const res = await authService.register(payload);
       if (res.success) {
-        setSuccess(`🎉 Đăng ký thành công! Đã tạo hồ sơ cho bé "${petName.trim()}". Đang đưa bạn vào trang chủ...`);
-        if (onRegisterSuccess) {
-          onRegisterSuccess(username.trim(), password, res.user);
-        }
+        const savedUsername = username.trim();
+        const savedPet = petName.trim();
+        setSuccess(`🎉 Đăng ký thành công! Đã tạo tài khoản và hồ sơ cho bé "${savedPet}". Đang chuyển sang màn hình đăng nhập...`);
+        setTimeout(() => {
+          if (onRegisterSuccess) {
+            onRegisterSuccess(savedUsername, savedPet);
+          }
+        }, 1200);
       }
     } catch (err) {
       setError(err.message || 'Lỗi khi tạo tài khoản, vui lòng thử lại!');

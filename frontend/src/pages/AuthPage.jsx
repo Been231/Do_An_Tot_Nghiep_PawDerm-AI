@@ -8,6 +8,9 @@ import '../styles/authSlider.css';
 export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal = false, onClose }) {
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  const [registeredUsername, setRegisteredUsername] = useState('');
+  const [registrationNotice, setRegistrationNotice] = useState('');
+
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
@@ -24,15 +27,16 @@ export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModal, onClose]);
 
-  const handleRegisterSuccess = (username, password, createdUser) => {
-    // Nếu có user trả về từ đăng ký, tự động đăng nhập và đưa vào trang chủ ngay
-    if (createdUser && onLoginSuccess) {
-      setTimeout(() => {
-        onLoginSuccess(createdUser);
-      }, 700);
-    } else {
-      setActiveTab('login');
-    }
+  const handleRegisterSuccess = (username, petName) => {
+    // Không tự động đăng nhập nhảy về trang chủ!
+    // Chuyển sang tab đăng nhập, điền sẵn tên đăng nhập, hiển thị thông báo yêu cầu đăng nhập xác nhận
+    setRegisteredUsername(username || '');
+    setRegistrationNotice(
+      petName 
+        ? `🎉 Đăng ký thành công tài khoản cho bé "${petName}"! Vui lòng nhập mật khẩu vừa tạo để xác nhận đăng nhập vào hệ thống.`
+        : '🎉 Đăng ký tài khoản thành công! Vui lòng nhập mật khẩu vừa tạo để xác nhận đăng nhập vào hệ thống.'
+    );
+    setActiveTab('login');
   };
 
   const cardContent = (
@@ -75,7 +79,12 @@ export default function AuthPage({ onLoginSuccess, initialTab = 'login', isModal
         {activeTab === 'login' ? (
           <LoginForm 
             onLoginSuccess={onLoginSuccess} 
-            onSwitchToRegister={() => setActiveTab('register')} 
+            onSwitchToRegister={() => {
+              setRegistrationNotice('');
+              setActiveTab('register');
+            }} 
+            initialUsername={registeredUsername}
+            registrationNotice={registrationNotice}
           />
         ) : (
           <RegisterForm 

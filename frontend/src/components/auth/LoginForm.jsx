@@ -1,14 +1,28 @@
-import React, { useState } from 'react';
-import { User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { authService } from '../../services/authService';
 
-export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
-  const [username, setUsername] = useState('khachhang');
-  const [password, setPassword] = useState('123');
+export default function LoginForm({ onLoginSuccess, onSwitchToRegister, initialUsername = '', registrationNotice = '' }) {
+  const [username, setUsername] = useState(initialUsername || 'khachhang');
+  const [password, setPassword] = useState(initialUsername ? '' : '123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState(registrationNotice || '');
+
+  useEffect(() => {
+    if (initialUsername) {
+      setUsername(initialUsername);
+      setPassword('');
+    }
+  }, [initialUsername]);
+
+  useEffect(() => {
+    if (registrationNotice) {
+      setNotice(registrationNotice);
+    }
+  }, [registrationNotice]);
 
   // Đăng nhập nhanh 1 chạm cho Hội đồng chấm đồ án
   const handleQuickLogin = async (targetUsername) => {
@@ -16,6 +30,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
     setPassword('123');
     setLoading(true);
     setError('');
+    setNotice('');
     try {
       const res = await authService.login(targetUsername, '123');
       if (res.user) {
@@ -64,9 +79,16 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
         </button>
       </div>
 
+      {notice && (
+        <div className="auth-alert-message success animate-fadeIn">
+          <CheckCircle size={16} style={{ flexShrink: 0 }} />
+          <span>{notice}</span>
+        </div>
+      )}
+
       {error && (
         <div className="auth-alert-message error">
-          <AlertCircle size={16} />
+          <AlertCircle size={16} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}
