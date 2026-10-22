@@ -26,15 +26,40 @@ def get_doctor_appointments():
     return {"success": True, "appointments": appointments}
 
 
+@router.get("/slot-availability")
+def get_slot_availability(date: Optional[str] = Query(None)):
+    """Kiểm tra tình trạng số người đã đặt và chỗ còn lại cho 4 khung giờ khám trong ngày."""
+    from datetime import datetime
+    target_date = (date or datetime.now().strftime("%Y-%m-%d")).strip()
+    slots = AppointmentService.get_slot_availability(target_date)
+    return {
+        "success": True,
+        "date": target_date,
+        "slots": slots,
+        "max_capacity": AppointmentService.MAX_SLOT_CAPACITY,
+        "hospital_info": {
+            "address": AppointmentService.HOSPITAL_ADDRESS,
+            "phone": AppointmentService.HOSPITAL_PHONE,
+            "hours": AppointmentService.HOSPITAL_HOURS
+        }
+    }
+
+
 @router.post("")
 def create_appointment(payload: Dict[str, Any] = Body(...)):
     """Khách hàng gửi yêu cầu đặt lịch khám tại Bệnh viện PawDerm."""
     if not payload.get("pet_name"):
-        raise HTTPException(status_code=400, detail="Vui lòng cung cấp tên thú cưng!")
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp tên thú cưng cần khám!")
     if not payload.get("phone"):
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp số điện thoại liên hệ!")
 
-    created = AppointmentService.create_appointment(payload)
+    try:
+        created = AppointmentService.create_appointment(payload)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi hệ thống khi đặt lịch: {str(e)}")
+
     return {
         "success": True,
         "appointment": created,

@@ -28,6 +28,18 @@ export const appointmentService = {
   },
 
   /**
+   * Kiểm tra tình trạng chỗ trống 4 khung giờ khám theo ngày
+   */
+  async getSlotAvailability(date) {
+    const url = date 
+      ? `${API_BASE_URL}/appointments/slot-availability?date=${encodeURIComponent(date)}`
+      : `${API_BASE_URL}/appointments/slot-availability`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Không thể kiểm tra tình trạng chỗ trống khung giờ');
+    return await res.json();
+  },
+
+  /**
    * Khách hàng tạo lịch hẹn mới tại Bệnh viện PawDerm
    */
   async createAppointment(appointmentData) {

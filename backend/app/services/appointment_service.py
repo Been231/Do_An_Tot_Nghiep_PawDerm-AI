@@ -15,6 +15,21 @@ from app.database.supabase_service import get_supabase_client
 APPOINTMENTS_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "appointments_store.json")
 
 class AppointmentService:
+    HOSPITAL_ADDRESS = "1A Lê Thị Xuyến, quận Thanh Khuê, Đà Nẵng"
+    HOSPITAL_PHONE = "0795477302"
+    HOSPITAL_HOURS = "8h-17h"
+    
+    # 4 mốc khung giờ khám bệnh viện chuẩn
+    TIME_SLOTS = [
+        "08:00 - 09:30",
+        "09:30 - 11:00",
+        "14:00 - 15:30",
+        "15:30 - 17:00"
+    ]
+    
+    # Giới hạn số người đặt tối đa cho mỗi khung giờ khám
+    MAX_SLOT_CAPACITY = 12
+
     @classmethod
     def _ensure_dir(cls):
         os.makedirs(os.path.dirname(APPOINTMENTS_FILE), exist_ok=True)
@@ -28,56 +43,7 @@ class AppointmentService:
                     return json.load(f)
             except Exception as e:
                 print("Lỗi đọc appointments_store.json:", e)
-
-        # Dữ liệu khởi tạo mẫu thực tế
-        default_appointments = [
-            {
-                "id": "APT-2026-001",
-                "user_id": "fab47e09-941f-49fa-86d0-650b3acf3c0d",
-                "owner_name": "Nguyễn Văn Khách",
-                "phone": "0901234567",
-                "pet_id": "pet-corgi-01",
-                "pet_name": "Mochi",
-                "pet_species": "Chó Corgi 🐶",
-                "service_title": "Khám da liễu chuyên sâu & Soi tươi vi nấm",
-                "appointment_date": "2026-10-23",
-                "appointment_time": "09:30 - 10:30",
-                "hospital_address": "Bệnh viện Thú Y PawDerm, 123 Nguyễn Văn Cừ, Quận 5, TP.HCM",
-                "notes": "Vùng tai và sống mũi rụng lông tròn như đồng xu, bé gãi đỏ da nhiều về đêm.",
-                "status": "confirmed",  # pending | confirmed | completed | cancelled
-                "doctor_id": "doc-001",
-                "doctor_name": "BS. CKII Nguyễn Thị Mai Hương",
-                "doctor_pre_diagnosis": "Nghi ngờ Nhiễm nấm da sợi khoáng (Ringworm / Dermatophytosis)",
-                "severity_level": "Trung bình - Cần soi kính hiển vi",
-                "doctor_advice": "Không tắm xà phòng hoặc bôi thuốc mỡ có màu trong 24h trước khi đến viện để cạo vảy soi nấm chính xác. Đeo loa chống liếm tránh làm tổn thương lan rộng.",
-                "created_at": "2026-10-20T10:15:00",
-                "confirmed_at": "2026-10-20T11:30:00"
-            },
-            {
-                "id": "APT-2026-002",
-                "user_id": "fab47e09-941f-49fa-86d0-650b3acf3c0d",
-                "owner_name": "Nguyễn Văn Khách",
-                "phone": "0901234567",
-                "pet_id": "pet-cat-02",
-                "pet_name": "Miu Miu",
-                "pet_species": "Mèo Anh lông ngắn 🐱",
-                "service_title": "Khám sơ bộ & Hội chẩn sau kết quả AI",
-                "appointment_date": "2026-10-24",
-                "appointment_time": "14:00 - 15:00",
-                "hospital_address": "Bệnh viện Thú Y PawDerm, 123 Nguyễn Văn Cừ, Quận 5, TP.HCM",
-                "notes": "Da vùng bụng nổi mẩn đỏ sau khi đổi sang thức ăn hạt mới, AI báo 85% Viêm da dị ứng.",
-                "status": "pending",
-                "doctor_id": "",
-                "doctor_name": "Bác sĩ phụ trách lâm sàng PawDerm",
-                "doctor_pre_diagnosis": "",
-                "severity_level": "Chờ bác sĩ thẩm định",
-                "doctor_advice": "",
-                "created_at": "2026-10-21T08:30:00",
-                "confirmed_at": None
-            }
-        ]
-        cls._save_data(default_appointments)
-        return default_appointments
+        return []
 
     @classmethod
     def _save_data(cls, data: List[Dict[str, Any]]):
@@ -90,13 +56,13 @@ class AppointmentService:
 
     @classmethod
     def get_my_appointments(cls, user_id: str) -> List[Dict[str, Any]]:
-        """Lấy danh sách lịch hẹn của một khách hàng."""
+        """Lấy danh sách lịch hẹn của một khách hàng thực tế (không trả dữ liệu mẫu)."""
         data = cls._load_data()
         if not user_id:
-            return data
-        # Lọc theo user_id, nếu không có user_id cụ thể thì trả về các lịch hẹn mẫu để trải nghiệm
+            return []
         matched = [a for a in data if str(a.get("user_id")) == str(user_id)]
-        return matched if matched else data
+        matched.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return matched
 
     @classmethod
     def get_doctor_appointments(cls) -> List[Dict[str, Any]]:
@@ -107,24 +73,69 @@ class AppointmentService:
         return data
 
     @classmethod
+    def get_slot_availability(cls, appointment_date: str) -> Dict[str, Any]:
+        """Kiểm tra số người đã đặt và chỗ còn lại cho 4 mốc giờ khám trong ngày."""
+        data = cls._load_data()
+        slots_info = {}
+        for slot in cls.TIME_SLOTS:
+            booked = sum(
+                1 for a in data
+                if a.get("appointment_date") == appointment_date
+                and a.get("appointment_time") == slot
+                and a.get("status") != "cancelled"
+            )
+            available = max(0, cls.MAX_SLOT_CAPACITY - booked)
+            slots_info[slot] = {
+                "booked": booked,
+                "max": cls.MAX_SLOT_CAPACITY,
+                "available": available,
+                "is_full": booked >= cls.MAX_SLOT_CAPACITY
+            }
+        return slots_info
+
+    @classmethod
     def create_appointment(cls, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Khách hàng gửi yêu cầu đặt lịch khám tại Bệnh viện PawDerm."""
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        app_date = (payload.get("appointment_date") or today_str).strip()
+        
+        # 1. Kiểm tra ngày hẹn: Chỉ cho phép đặt ngày hiện tại và tương lai, không cho đặt ngày quá khứ
+        if app_date < today_str:
+            raise ValueError(f"Ngày hẹn khám ({app_date}) không thể là ngày trong quá khứ! Vui lòng chọn từ ngày hôm nay ({today_str}) trở đi.")
+
+        # 2. Kiểm tra khung giờ và giới hạn 12 người/slot
+        app_time = (payload.get("appointment_time") or cls.TIME_SLOTS[0]).strip()
         data = cls._load_data()
+        
+        booked_count = sum(
+            1 for a in data
+            if a.get("appointment_date") == app_date
+            and a.get("appointment_time") == app_time
+            and a.get("status") != "cancelled"
+        )
+        if booked_count >= cls.MAX_SLOT_CAPACITY:
+            raise ValueError(
+                f"Khung giờ '{app_time}' ngày {app_date} đã đủ giới hạn {cls.MAX_SLOT_CAPACITY} người đặt. "
+                "Vui lòng chọn khung giờ khác hoặc ngày khác!"
+            )
+
         new_id = f"APT-{datetime.now().strftime('%Y%m%d')}-{len(data)+1:03d}"
 
         new_item = {
             "id": new_id,
             "user_id": payload.get("user_id") or str(uuid.uuid4()),
             "owner_name": payload.get("owner_name") or "Khách hàng",
-            "phone": payload.get("phone") or "",
+            "phone": (payload.get("phone") or "").strip(),
             "pet_id": payload.get("pet_id") or "",
             "pet_name": payload.get("pet_name") or "Bé cưng",
             "pet_species": payload.get("pet_species") or "Chó / Mèo",
             "service_title": payload.get("service_title") or "Khám da liễu tổng quát",
-            "appointment_date": payload.get("appointment_date") or datetime.now().strftime("%Y-%m-%d"),
-            "appointment_time": payload.get("appointment_time") or "09:30 - 10:30",
-            "hospital_address": "Bệnh viện Thú Y PawDerm, 123 Nguyễn Văn Cừ, Quận 5, TP.HCM",
-            "notes": payload.get("notes") or "",
+            "appointment_date": app_date,
+            "appointment_time": app_time,
+            "hospital_address": cls.HOSPITAL_ADDRESS,
+            "hospital_phone": cls.HOSPITAL_PHONE,
+            "hospital_hours": cls.HOSPITAL_HOURS,
+            "notes": (payload.get("notes") or "").strip(),
             "status": "pending",
             "doctor_id": payload.get("doctor_id") or "",
             "doctor_name": payload.get("doctor_name") or "BS. CKII Nguyễn Thị Mai Hương",

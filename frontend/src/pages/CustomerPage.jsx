@@ -336,6 +336,8 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
             initialBookingData={bookingInitialData}
             onOpenAddPetModal={handleOpenAddPet}
             onRequireAuth={onRequireAuth}
+            recentDiagnosis={diagnosisResult}
+            historyRecords={historyRecords}
           />
         )
       )}
