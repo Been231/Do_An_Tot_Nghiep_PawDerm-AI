@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, BookOpen, Database, BarChart3 } from 'lucide-react';
+import { Users, BookOpen, Database, BarChart3, CreditCard } from 'lucide-react';
 import { adminService } from '../services/adminService';
 
 import AdminDashboardTab from '../components/admin/AdminDashboardTab';
@@ -7,9 +7,10 @@ import UserManagementTab from '../components/admin/UserManagementTab';
 import DiseaseDictionaryTab from '../components/admin/DiseaseDictionaryTab';
 import DiseaseModal from '../components/admin/DiseaseModal';
 import DatasetRetrainTab from '../components/admin/DatasetRetrainTab';
+import AdminPaymentsTab from '../components/admin/AdminPaymentsTab';
 
 export default function AdminPage({ currentUser }) {
-  const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard' | 'users' | 'dictionary' | 'dataset'
+  const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard' | 'users' | 'dictionary' | 'dataset' | 'payments'
   
   // State Dashboard
   const [metrics, setMetrics] = useState(null);
@@ -243,6 +244,13 @@ export default function AdminPage({ currentUser }) {
           <Database size={16} />
           <span>Quản lý data</span>
         </button>
+        <button 
+          className={`sub-tab-btn ${adminTab === 'payments' ? 'active' : ''}`}
+          onClick={() => setAdminTab('payments')}
+        >
+          <CreditCard size={16} />
+          <span>Giao dịch & Doanh thu</span>
+        </button>
       </div>
 
       {/* TAB 1: DASHBOARD */}
@@ -279,6 +287,11 @@ export default function AdminPage({ currentUser }) {
           loadDataset={loadDataset}
           handleExportDataset={handleExportDataset}
         />
+      )}
+
+      {/* TAB 5: GIAO DỊCH & DOANH THU VIETQR */}
+      {adminTab === 'payments' && (
+        <AdminPaymentsTab />
       )}
 
       {/* MODAL THÊM / SỬA TỪ ĐIỂN BỆNH */}

@@ -77,3 +77,11 @@ COMMON_SYMPTOMS = [
 ]
 
 ALLOWED_IMAGE_TYPES = ["jpg", "jpeg", "png"]
+
+# -----------------------------------------------------------------------------
+# CẤU HÌNH CỔNG THANH TOÁN VIETQR TỰ ĐỘNG (BỆNH VIỆN THÚ Y PAWDERM)
+# -----------------------------------------------------------------------------
+VIETQR_BANK_ID = os.getenv("VIETQR_BANK_ID", "MB")
+VIETQR_ACCOUNT_NO = os.getenv("VIETQR_ACCOUNT_NO", "0795477302")
+VIETQR_ACCOUNT_NAME = os.getenv("VIETQR_ACCOUNT_NAME", "BENH VIEN THU Y PAWDERM")
+PAYMENT_TIMEOUT_MINUTES = int(os.getenv("PAYMENT_TIMEOUT_MINUTES", "10"))

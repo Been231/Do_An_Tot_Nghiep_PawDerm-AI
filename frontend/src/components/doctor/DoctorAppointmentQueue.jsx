@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   CalendarCheck, Clock, MapPin, Phone, Stethoscope, AlertCircle, CheckCircle2,
-  Send, RefreshCw, User, ChevronRight, X, Sparkles
+  Send, RefreshCw, User, ChevronRight, X, Sparkles, CreditCard
 } from 'lucide-react';
 import { appointmentService } from '../../services/appointmentService';
 
@@ -50,6 +50,7 @@ export default function DoctorAppointmentQueue({ currentUser }) {
 
   const filteredAppointments = appointments.filter((apt) => {
     if (statusFilter === 'all') return true;
+    if (statusFilter === 'paid') return apt.payment_status === 'paid';
     return apt.status === statusFilter;
   });
 
@@ -140,6 +141,14 @@ export default function DoctorAppointmentQueue({ currentUser }) {
         </button>
         <button
           type="button"
+          className={`btn-filter-pill ${statusFilter === 'paid' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('paid')}
+          style={{ color: statusFilter === 'paid' ? '#059669' : undefined, fontWeight: '700' }}
+        >
+          💳 Đã thanh toán ({appointments.filter(a => a.payment_status === 'paid').length})
+        </button>
+        <button
+          type="button"
           className={`btn-filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`}
           onClick={() => setStatusFilter('confirmed')}
         >
@@ -185,10 +194,62 @@ export default function DoctorAppointmentQueue({ currentUser }) {
               }}
             >
               <div>
-                <div className="flex-between mb-2">
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary-teal-dark)', background: 'var(--primary-teal-light)', padding: '2px 8px', borderRadius: '6px' }}>
-                    #{apt.id}
-                  </span>
+                <div className="flex-between mb-2 flex-wrap gap-2">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary-teal-dark)', background: 'var(--primary-teal-light)', padding: '2px 8px', borderRadius: '6px' }}>
+                      #{apt.id}
+                    </span>
+
+                    {/* BADGE THANH TOÁN VIETQR */}
+                    {apt.payment_status === 'paid' ? (
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '800',
+                          background: '#ecfdf5',
+                          color: '#059669',
+                          border: '1px solid #a7f3d0',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                      >
+                        <CreditCard size={11} />
+                        <span>ĐÃ THANH TOÁN</span>
+                      </span>
+                    ) : apt.payment_status === 'expired' ? (
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          background: '#fef2f2',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca'
+                        }}
+                      >
+                        HẾT HẠN QR
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          background: '#fffbeb',
+                          color: '#d97706',
+                          border: '1px solid #fde68a'
+                        }}
+                      >
+                        CHỜ THANH TOÁN
+                      </span>
+                    )}
+                  </div>
+
                   <span
                     style={{
                       padding: '3px 10px',
@@ -312,9 +373,38 @@ export default function DoctorAppointmentQueue({ currentUser }) {
               </button>
             </div>
 
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '12px' }}>
               Bệnh nhân: <strong>{selectedAppointment.pet_name}</strong> ({selectedAppointment.pet_species}) · Chủ nuôi: <strong>{selectedAppointment.owner_name}</strong> ({selectedAppointment.phone})
             </p>
+
+            {/* THÔNG TIN THANH TOÁN ONLINE CỦA CA KHÁM */}
+            <div
+              style={{
+                background: selectedAppointment.payment_status === 'paid' ? '#ecfdf5' : '#fffbeb',
+                border: `1px solid ${selectedAppointment.payment_status === 'paid' ? '#a7f3d0' : '#fde68a'}`,
+                borderRadius: '10px',
+                padding: '10px 14px',
+                fontSize: '13px',
+                marginBottom: '16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CreditCard size={15} style={{ color: selectedAppointment.payment_status === 'paid' ? '#059669' : '#d97706' }} />
+                <span>
+                  Thanh toán: <strong style={{ color: selectedAppointment.payment_status === 'paid' ? '#059669' : '#d97706' }}>
+                    {selectedAppointment.payment_status === 'paid' ? 'ĐÃ THANH TOÁN ONLINE (VIETQR)' : 'Chờ khách hàng thanh toán'}
+                  </strong>
+                </span>
+              </div>
+              <strong style={{ fontSize: '14px', color: selectedAppointment.payment_status === 'paid' ? '#059669' : '#d97706' }}>
+                {(selectedAppointment.payment_amount || 200000).toLocaleString('vi-VN')} VNĐ
+              </strong>
+            </div>
 
             <form onSubmit={handleSavePreDiagnosis}>
               {/* DỰ ĐOÁN BỆNH SƠ BỘ */}

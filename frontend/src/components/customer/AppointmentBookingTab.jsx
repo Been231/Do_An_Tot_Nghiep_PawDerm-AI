@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, MapPin, Phone, Stethoscope, Sparkles, CheckCircle2,
   AlertCircle, ChevronRight, User, Heart, ShieldCheck, Plus, CalendarCheck,
-  Check, Info, Tag, FileText
+  Check, Info, Tag, FileText, CreditCard, QrCode, RefreshCw
 } from 'lucide-react';
 import { appointmentService } from '../../services/appointmentService';
+import PaymentQrModal from './PaymentQrModal';
 
 // 4 mốc khung giờ khám bệnh viện chuẩn
 const TIME_SLOTS = [
@@ -36,6 +37,8 @@ export default function AppointmentBookingTab({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState({ type: '', text: '' });
+  const [activePaymentAppointment, setActivePaymentAppointment] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Ngày hôm nay (YYYY-MM-DD)
   const getTodayStr = () => {
@@ -218,10 +221,14 @@ export default function AppointmentBookingTab({
         notes: notes.trim()
       };
 
-      await appointmentService.createAppointment(payload);
+      const res = await appointmentService.createAppointment(payload);
+      if (res?.appointment) {
+        setActivePaymentAppointment(res.appointment);
+        setShowPaymentModal(true);
+      }
       setFeedbackMsg({
         type: 'success',
-        text: `🎉 Đặt lịch khám cho bé "${petName}" tại Bệnh viện Thú Y PawDerm (${HOSPITAL_INFO.address}) thành công! Khung giờ: ${appointmentTime} ngày ${appointmentDate}.`
+        text: `🎉 Đặt lịch khám cho bé "${petName}" tại Bệnh viện Thú Y PawDerm (${HOSPITAL_INFO.address}) thành công! Khung giờ: ${appointmentTime} ngày ${appointmentDate}. Vui lòng quét mã VietQR để hoàn tất giữ chỗ.`
       });
 
       // Reset form sau khi gửi
@@ -651,26 +658,100 @@ export default function AppointmentBookingTab({
                     boxShadow: 'var(--shadow-sm)'
                   }}
                 >
-                  {/* HEADER THẺ LỊCH HẸN */}
-                  <div className="flex-between mb-2">
+                  {/* HEADER THẺ LỊCH HẸN & THANH TOÁN VIETQR */}
+                  <div className="flex-between mb-2 flex-wrap gap-2">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '18px' }}>🐶</span>
                       <strong>{apt.pet_name}</strong>
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>({apt.pet_species})</span>
                     </div>
 
-                    <span
-                      style={{
-                        padding: '3px 10px',
-                        borderRadius: '999px',
-                        fontSize: '11.5px',
-                        fontWeight: '700',
-                        background: apt.status === 'confirmed' ? 'var(--primary-teal-light)' : apt.status === 'completed' ? 'var(--success-light)' : 'var(--warning-light)',
-                        color: apt.status === 'confirmed' ? 'var(--primary-teal-dark)' : apt.status === 'completed' ? 'var(--success)' : 'var(--warning)'
-                      }}
-                    >
-                      {apt.status === 'confirmed' ? '🩺 Đã khám sơ bộ & Tiếp nhận' : apt.status === 'completed' ? '✅ Đã hoàn thành' : '⏳ Chờ Bác sĩ tiếp nhận'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      {/* TRẠNG THÁI THANH TOÁN VIETQR */}
+                      {apt.payment_status === 'paid' ? (
+                        <span
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: '999px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            background: '#ecfdf5',
+                            color: '#059669',
+                            border: '1px solid #a7f3d0',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <CreditCard size={12} />
+                          <span>Đã thanh toán ({(apt.payment_amount || 200000).toLocaleString('vi-VN')}đ)</span>
+                        </span>
+                      ) : apt.payment_status === 'expired' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActivePaymentAppointment(apt);
+                            setShowPaymentModal(true);
+                          }}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: '999px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            background: '#fef2f2',
+                            color: '#dc2626',
+                            border: '1px solid #fecaca',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title="Bấm để tạo lại mã QR và gia hạn 10 phút"
+                        >
+                          <RefreshCw size={12} />
+                          <span>QR hết hạn (Tạo lại)</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActivePaymentAppointment(apt);
+                            setShowPaymentModal(true);
+                          }}
+                          style={{
+                            padding: '3px 10px',
+                            borderRadius: '999px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            background: '#fffbeb',
+                            color: '#d97706',
+                            border: '1px solid #fde68a',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title="Bấm để mở mã VietQR thanh toán 10 phút"
+                        >
+                          <QrCode size={12} />
+                          <span>Quét QR ({(apt.payment_amount || 200000).toLocaleString('vi-VN')}đ)</span>
+                        </button>
+                      )}
+
+                      {/* TRẠNG THÁI KHÁM BỆNH */}
+                      <span
+                        style={{
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          background: apt.status === 'confirmed' ? 'var(--primary-teal-light)' : apt.status === 'completed' ? 'var(--success-light)' : 'var(--warning-light)',
+                          color: apt.status === 'confirmed' ? 'var(--primary-teal-dark)' : apt.status === 'completed' ? 'var(--success)' : 'var(--warning)'
+                        }}
+                      >
+                        {apt.status === 'confirmed' ? '🩺 Đã khám sơ bộ' : apt.status === 'completed' ? '✅ Đã hoàn thành' : '⏳ Chờ Bác sĩ'}
+                      </span>
+                    </div>
                   </div>
 
                   <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--primary-orange-dark)', marginBottom: '6px' }}>
@@ -777,6 +858,17 @@ export default function AppointmentBookingTab({
           )}
         </div>
       </div>
+
+      {/* CỬA SỔ MODAL QUÉT MÃ VIETQR THANH TOÁN THỜI GIAN THỰC 10 PHÚT */}
+      <PaymentQrModal
+        isOpen={showPaymentModal}
+        appointment={activePaymentAppointment}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={() => {
+          loadAppointments();
+          loadSlotAvailability(appointmentDate);
+        }}
+      />
     </div>
   );
 }

@@ -21,7 +21,19 @@
     "severity_level": "Chờ bác sĩ tiếp nhận",
     "doctor_advice": "",
     "created_at": "2026-10-22T10:23:22.364034",
-    "confirmed_at": null
+    "confirmed_at": null,
+    "payment_status": "pending_payment",
+    "payment_amount": 200000,
+    "payment_memo": "PAWDERM APT-20261022-004",
+    "payment_qr_url": "https://img.vietqr.io/image/MB-0795477302-compact2.png?amount=200000&addInfo=PAWDERM%20APT-20261022-004&accountName=BENH%20VIEN%20THU%20Y%20PAWDERM",
+    "payment_qr_expires_at": "2026-10-22T23:59:59",
+    "paid_at": null,
+    "payment_method": "VietQR Online",
+    "bank_info": {
+      "bank_id": "MB",
+      "account_no": "0795477302",
+      "account_name": "BENH VIEN THU Y PAWDERM"
+    }
   },
   {
     "id": "APT-20261021-003",
@@ -37,14 +49,26 @@
     "hospital_address": "1A Lê Thị Xuyến, quận Thanh Khuê, Đà Nẵng",
     "hospital_phone": "0795477302",
     "hospital_hours": "8h-17h",
-    "notes": "",
-    "status": "pending",
-    "doctor_id": "",
+    "notes": "Bé gãi tai liên tục, rụng lông vùng gáy",
+    "status": "confirmed",
+    "doctor_id": "doc-001",
     "doctor_name": "BS. CKII Nguyễn Thị Mai Hương",
-    "doctor_pre_diagnosis": "",
-    "severity_level": "Chờ bác sĩ tiếp nhận",
-    "doctor_advice": "",
+    "doctor_pre_diagnosis": "Nhiễm nấm men Malassezia vùng tai & kẽ chân",
+    "severity_level": "Trung bình - Cần đến viện soi vi nấm & cạo da",
+    "doctor_advice": "Đeo loa chống cào xước, giữ khô thoáng tai và đến đúng khung giờ đã đặt.",
     "created_at": "2026-10-21T23:26:08.362653",
-    "confirmed_at": null
+    "confirmed_at": "2026-10-22T08:15:00",
+    "payment_status": "paid",
+    "payment_amount": 350000,
+    "payment_memo": "PAWDERM APT-20261021-003",
+    "payment_qr_url": "https://img.vietqr.io/image/MB-0795477302-compact2.png?amount=350000&addInfo=PAWDERM%20APT-20261021-003&accountName=BENH%20VIEN%20THU%20Y%20PAWDERM",
+    "payment_qr_expires_at": "2026-10-21T23:36:08",
+    "paid_at": "2026-10-21T23:28:45",
+    "payment_method": "VietQR Online",
+    "bank_info": {
+      "bank_id": "MB",
+      "account_no": "0795477302",
+      "account_name": "BENH VIEN THU Y PAWDERM"
+    }
   }
 ]
