@@ -521,7 +521,7 @@ export default function AppointmentBookingTab({
                 )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                 {TIME_SLOTS.map((slot) => {
                   const info = slotAvailability[slot];
                   const booked = info?.booked ?? 0;
@@ -536,49 +536,48 @@ export default function AppointmentBookingTab({
                       disabled={isFull}
                       onClick={() => setAppointmentTime(slot)}
                       style={{
-                        padding: '10px 12px',
-                        textAlign: 'left',
-                        borderRadius: '10px',
-                        border: isSelected ? '2px solid var(--primary-teal)' : '1px solid var(--border-subtle)',
+                        padding: '14px 16px',
+                        textAlign: 'center',
+                        borderRadius: '12px',
+                        border: isSelected ? '2.5px solid var(--primary-teal)' : '1.5px solid var(--border-subtle)',
                         background: isFull
                           ? '#f3f4f6'
                           : isSelected
                           ? 'var(--primary-teal-light)'
-                          : 'var(--bg-subtle)',
+                          : '#ffffff',
                         color: isFull
                           ? '#9ca3af'
                           : isSelected
                           ? 'var(--primary-teal-dark)'
                           : 'var(--text-body)',
                         cursor: isFull ? 'not-allowed' : 'pointer',
-                        opacity: isFull ? 0.65 : 1,
+                        opacity: isFull ? 0.55 : 1,
                         transition: 'all 0.15s ease',
-                        position: 'relative'
+                        boxShadow: isSelected ? '0 4px 12px rgba(42, 157, 143, 0.2)' : '0 1px 4px rgba(0,0,0,0.04)'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: '700', fontSize: '13.5px' }}>
-                          ⏰ {slot}
-                        </span>
-                        {isSelected && !isFull && (
-                          <span style={{ color: 'var(--primary-teal)', fontSize: '13px' }}>✓</span>
-                        )}
+                      <div style={{
+                        fontSize: '16.5px',
+                        fontWeight: '800',
+                        marginBottom: '6px',
+                        letterSpacing: '0.3px',
+                        color: isFull ? '#9ca3af' : isSelected ? 'var(--primary-teal-dark)' : 'var(--text-main)'
+                      }}>
+                        {slot}
                       </div>
 
-                      <div style={{ fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        {isFull ? (
-                          <span style={{ color: '#dc2626', fontWeight: '700' }}>
-                            ❌ Đã đủ {MAX_SLOT_CAPACITY}/{MAX_SLOT_CAPACITY} người (Kín chỗ)
-                          </span>
-                        ) : available <= 3 ? (
-                          <span style={{ color: '#d97706', fontWeight: '600' }}>
-                            ⚠️ Sắp kín: Còn {available}/{MAX_SLOT_CAPACITY} chỗ ({booked} đã đặt)
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--primary-teal-dark)', fontWeight: '500' }}>
-                            ✅ Còn {available}/{MAX_SLOT_CAPACITY} chỗ ({booked} đã đặt)
-                          </span>
-                        )}
+                      <div style={{
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        color: isFull
+                          ? '#dc2626'
+                          : isSelected
+                          ? 'var(--primary-teal-dark)'
+                          : available <= 3
+                          ? '#d97706'
+                          : '#059669'
+                      }}>
+                        Còn {available}/12
                       </div>
                     </button>
                   );
