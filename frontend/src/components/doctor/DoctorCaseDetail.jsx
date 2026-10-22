@@ -38,7 +38,16 @@ export default function DoctorCaseDetail({
     <div className="card case-detail-card">
       <div className="flex-between pb-3 border-bottom mb-3">
         <div>
-          <span className="badge-anon-patient">Bệnh Nhân Ẩn Danh: {selectedCase.anonymous_code}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span className="badge-anon-patient">Bệnh Nhân Ẩn Danh: {selectedCase.anonymous_code}</span>
+            <span className={`badge-status small ${selectedCase.review_status === 'agreed' ? 'badge-success' : selectedCase.review_status === 'corrected' ? 'badge-warning' : 'badge-pending'}`}>
+              {selectedCase.review_status === 'agreed' 
+                ? '✓ Đã khám (Đồng thuận AI)' 
+                : selectedCase.review_status === 'corrected' 
+                ? '✏️ Đã khám (Đính chính nhãn)' 
+                : '⏳ Đang chờ khám / Thẩm định'}
+            </span>
+          </div>
           <h3 className="mt-1">
             Bệnh nhân: {selectedCase.patient_info?.species || 'Thú cưng'} {selectedCase.patient_info?.breed ? `(${selectedCase.patient_info.breed})` : ''}
           </h3>

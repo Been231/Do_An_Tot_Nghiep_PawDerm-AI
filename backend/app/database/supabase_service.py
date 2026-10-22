@@ -535,6 +535,77 @@ class SupabaseService:
     # ──────────────────────────────────────────────────────────────────────────
     # 4. PHÂN HỆ BÁC SĨ (CHUYÊN GIA): THẨM ĐỊNH ẨN DANH & DÁN NHÃN LẠI (RE-LABELING)
     # ──────────────────────────────────────────────────────────────────────────
+    _mock_doctor_queue: List[Dict[str, Any]] = []
+
+    @classmethod
+    def _get_default_mock_doctor_queue(cls) -> List[Dict[str, Any]]:
+        now = datetime.datetime.now()
+        return [
+            {
+                "id": "case-doc-001",
+                "disease_key": "ringworm",
+                "disease_name_vi": "Nhiễm nấm da",
+                "confidence": 85.5,
+                "probabilities": [
+                    {"label": "Nhiễm nấm da (Ringworm)", "percent": 85.5, "color": "#0284c7"},
+                    {"label": "Ghẻ Demodex (Mange)", "percent": 11.5, "color": "#f59e0b"},
+                    {"label": "Viêm da cơ địa dị ứng", "percent": 3.0, "color": "#64748b"}
+                ],
+                "review_status": "pending",
+                "image_url": "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=500&auto=format&fit=crop&q=60",
+                "created_at": (now - datetime.timedelta(hours=2)).isoformat(),
+                "pets": {"species": "Chó 🐶", "breed": "Corgi Wales", "age": "1.5 tuổi", "weight": "11 kg"}
+            },
+            {
+                "id": "case-doc-002",
+                "disease_key": "dermatitis",
+                "disease_name_vi": "Viêm da mủ & Dị ứng",
+                "confidence": 78.0,
+                "probabilities": [
+                    {"label": "Viêm da mủ & Dị ứng", "percent": 78.0, "color": "#0284c7"},
+                    {"label": "Ghẻ Demodex (Mange)", "percent": 15.0, "color": "#f59e0b"},
+                    {"label": "Khỏe mạnh", "percent": 7.0, "color": "#10b981"}
+                ],
+                "review_status": "pending",
+                "image_url": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500&auto=format&fit=crop&q=60",
+                "created_at": (now - datetime.timedelta(hours=5)).isoformat(),
+                "pets": {"species": "Chó 🐶", "breed": "Poodle", "age": "2 tuổi", "weight": "4.5 kg"}
+            },
+            {
+                "id": "case-doc-003",
+                "disease_key": "ringworm",
+                "disease_name_vi": "Nhiễm nấm da (Ringworm)",
+                "confidence": 91.2,
+                "probabilities": [
+                    {"label": "Nhiễm nấm da", "percent": 91.2, "color": "#0284c7"},
+                    {"label": "Ghẻ Demodex", "percent": 6.8, "color": "#f59e0b"}
+                ],
+                "review_status": "agreed",
+                "doctor_name": "BS. CKII Nguyễn Thị Mai Hương",
+                "doctor_notes": "Tổn thương rụng lông hình đồng xu viền đỏ điển hình. Đã đồng ý với chẩn đoán AI.",
+                "image_url": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=60",
+                "created_at": (now - datetime.timedelta(days=1)).isoformat(),
+                "pets": {"species": "Mèo 🐱", "breed": "Anh lông ngắn", "age": "8 tháng", "weight": "3.2 kg"}
+            },
+            {
+                "id": "case-doc-004",
+                "disease_key": "dermatitis",
+                "disease_name_vi": "Viêm da tiếp xúc",
+                "confidence": 64.5,
+                "probabilities": [
+                    {"label": "Viêm da tiếp xúc", "percent": 64.5, "color": "#0284c7"},
+                    {"label": "Bệnh ghẻ Demodex", "percent": 30.5, "color": "#f59e0b"}
+                ],
+                "review_status": "corrected",
+                "doctor_name": "BS. CKII Nguyễn Thị Mai Hương",
+                "doctor_corrected_disease": "Bệnh ghẻ Demodex (Demodicosis)",
+                "doctor_notes": "AI nhầm do vùng bụng đỏ rực, nhưng soi biểu bì thấy nhiều bao lông có ổ rụng sần sùi đặc trưng của ghẻ Demodex. Đã đính chính phục vụ Retrain AI.",
+                "image_url": "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=500&auto=format&fit=crop&q=60",
+                "created_at": (now - datetime.timedelta(days=2)).isoformat(),
+                "pets": {"species": "Chó 🐶", "breed": "Phốc sóc (Pomeranian)", "age": "1 tuổi", "weight": "2.8 kg"}
+            }
+        ]
+
     @classmethod
     def get_doctor_review_queue(cls) -> List[Dict[str, Any]]:
         """
@@ -552,39 +623,11 @@ class SupabaseService:
             except Exception as e:
                 print(f"⚠️ Lỗi lấy hàng đợi bác sĩ: {e}")
 
-        # Nếu chưa có bản ghi, trả về mock dữ liệu y khoa ẩn danh
+        # Nếu chưa có bản ghi từ CSDL, dùng mock store có phân loại Chờ khám và Đã khám
         if not raw_list:
-            raw_list = [
-                {
-                    "id": "case-doc-001",
-                    "disease_key": "ringworm",
-                    "disease_name_vi": "Nhiễm nấm da",
-                    "confidence": 85.5,
-                    "probabilities": [
-                        {"label": "Nhiễm nấm da (Ringworm)", "percent": 85.5, "color": "#0284c7"},
-                        {"label": "Ghẻ Demodex (Mange)", "percent": 11.5, "color": "#f59e0b"},
-                        {"label": "Viêm da cơ địa dị ứng", "percent": 3.0, "color": "#64748b"}
-                    ],
-                    "review_status": "pending",
-                    "image_url": "https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=500&auto=format&fit=crop&q=60",
-                    "created_at": datetime.datetime.now().isoformat(),
-                    "pets": {"species": "Chó 🐶", "breed": "Corgi Wales", "age": "1.5 tuổi", "weight": "11 kg"}
-                },
-                {
-                    "id": "case-doc-002",
-                    "disease_key": "dermatitis",
-                    "disease_name_vi": "Viêm da mủ & Dị ứng",
-                    "confidence": 78.0,
-                    "probabilities": [
-                        {"label": "Viêm da mủ & Dị ứng", "percent": 78.0, "color": "#0284c7"},
-                        {"label": "Ghẻ Demodex (Mange)", "percent": 15.0, "color": "#f59e0b"}
-                    ],
-                    "review_status": "pending",
-                    "image_url": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500&auto=format&fit=crop&q=60",
-                    "created_at": datetime.datetime.now().isoformat(),
-                    "pets": {"species": "Chó 🐶", "breed": "Poodle", "age": "2 tuổi", "weight": "4.5 kg"}
-                }
-            ]
+            if not cls._mock_doctor_queue:
+                cls._mock_doctor_queue = cls._get_default_mock_doctor_queue()
+            raw_list = cls._mock_doctor_queue
 
         # Chuẩn hóa bảo mật: Tuyệt đối giấu danh tính người dùng
         anonymized_queue = []
@@ -639,6 +682,17 @@ class SupabaseService:
             "doctor_notes": notes,
             "reviewed_at": now
         }
+
+        # Cập nhật trong mock store nếu đang dùng mock
+        if cls._mock_doctor_queue:
+            for item in cls._mock_doctor_queue:
+                if str(item.get("id")) == str(record_id):
+                    item["review_status"] = review_status
+                    item["doctor_name"] = doctor_name
+                    item["doctor_corrected_disease"] = corrected_disease if review_status == "corrected" else ""
+                    item["doctor_notes"] = notes
+                    item["reviewed_at"] = now
+                    break
 
         if client:
             try:
