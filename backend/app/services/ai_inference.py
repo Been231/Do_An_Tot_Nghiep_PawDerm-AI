@@ -67,10 +67,34 @@ _cls_model = None
 IMAGENET_ANIMAL_MAX_IDX = 397
 # Ảnh cận cảnh lông/da hay bị nhận nhầm thành các lớp có kết cấu giống lông -> không từ chối.
 FUR_LIKE_CLASSES = {
-    'velvet', 'wool', 'paper_towel', 'book_jacket', 'broom', 'plastic_bag', 'doormat',
-    'towel', 'bath_towel', 'swab', 'fur_coat', 'cardigan', 'sweatshirt', 'teddy', 'shower_curtain',
-    'chain_mail', 'handkerchief', 'diaper', 'sleeping_bag', 'quilt', 'mosquito_net', 'window_screen',
-    'sock', 'stole', 'wig', 'mask', 'face_powder', 'lipstick', 'hair_spray', 'sunscreen', 'band_aid'
+    'velvet', 'wool', 'fur_coat', 'cardigan', 'sweatshirt', 'teddy', 'stole', 'wig'
+}
+
+IMAGENET_VI_MAP = {
+    'swab': 'Cây lau nhà / Dụng cụ lau sàn',
+    'broom': 'Chổi quét nhà / Cây lau',
+    'moped': 'Xe máy',
+    'doormat': 'Thảm chùi chân',
+    'vacuum': 'Máy hút bụi',
+    'paper_towel': 'Khăn giấy',
+    'toilet_tissue': 'Giấy vệ sinh',
+    'pot': 'Chậu cây cảnh / Nồi',
+    'flowerpot': 'Chậu hoa / Chậu cây',
+    'vase': 'Bình hoa / Lọ hoa',
+    'jackfruit': 'Trái mít / Hoa quả',
+    'banana': 'Trái chuối / Hoa quả',
+    'apple': 'Trái táo / Hoa quả',
+    'orange': 'Trái cam / Hoa quả',
+    'lemon': 'Trái chanh',
+    'strawberry': 'Quả dâu tây',
+    'pineapple': 'Quả dứa',
+    'folding_chair': 'Ghế gấp / Bàn ghế',
+    'table_lamp': 'Đèn bàn',
+    'pillow': 'Gối ngủ',
+    'quilt': 'Chăn đệm',
+    'shoe': 'Giày dép',
+    'running_shoe': 'Giày thể thao',
+    'sandal': 'Dép sandal'
 }
 
 def get_cls_model():
@@ -206,15 +230,40 @@ class AIInferenceService:
                 except Exception as e:
                     print(f"⚠️ Lỗi quét COCO Gatekeeper: {e}")
 
-            # 2. Quét dải màu thực vật / hoa quả xanh (Green hue 30-85, Saturation >= 40, Value >= 30)
+            # 2. Bộ phân loại ImageNet 1000 lớp - kiểm tra đặc trưng sinh học và bắt vật thể lạ
+            cls_model = get_cls_model()
+            animal_evidence = False
+            animal_mass = 0.0
+            if cls_model is not None and not cats_and_dogs:
+                try:
+                    cres = cls_model.predict(img, verbose=False)[0]
+                    top_idx = int(cres.probs.top1)
+                    top_conf = float(cres.probs.top1conf)
+                    top_name = cres.names[top_idx]
+                    animal_mass = float(cres.probs.data[:IMAGENET_ANIMAL_MAX_IDX + 1].sum())
+                    # Chỉ xác nhận có bằng chứng động vật khi tổng xác suất các lớp thú cưng đạt >= 25%
+                    animal_evidence = animal_mass >= 0.25
+                    if (top_idx > IMAGENET_ANIMAL_MAX_IDX
+                            and top_conf >= 0.35
+                            and top_name not in FUR_LIKE_CLASSES):
+                        label_vi = IMAGENET_VI_MAP.get(top_name, top_name.replace('_', ' '))
+                        return (
+                            False,
+                            f"Hệ thống nhận diện hình ảnh này là vật thể '{label_vi}' (độ tin cậy {round(top_conf * 100)}%), không phải chó/mèo hay vùng da lông thú cưng.",
+                            label_vi,
+                            False
+                        )
+                except Exception as e:
+                    print(f"⚠️ Lỗi bộ phân loại ImageNet Gatekeeper: {e}")
+
+            # 3. Quét dải màu thực vật / hoa quả xanh (Green hue 30-85, Saturation >= 40, Value >= 30)
             hsv = cv2.cvtColor(cv_img, cv2.COLOR_BGR2HSV)
             h_chan, s_chan, v_chan = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
             green_mask = (h_chan >= 30) & (h_chan <= 85) & (s_chan >= 40) & (v_chan >= 30)
             green_ratio = float(np.sum(green_mask)) / float(max(1, img_area))
 
-            # NGUYÊN TẮC 1: Màu xanh lá thực vật chiếm >= 35% khung hình và không thấy chó/mèo
-            # (ngưỡng cao để không chặn nhầm ảnh thú cưng nằm trên cỏ; ca thực vật nhẹ hơn do bộ phân loại ImageNet xử lý)
-            if green_ratio >= 0.35 and not cats_and_dogs:
+            # NGUYÊN TẮC 1: Màu xanh lá thực vật chiếm >= 35% khung hình và không thấy thú cưng
+            if green_ratio >= 0.35 and not cats_and_dogs and animal_mass < 0.20:
                 return (
                     False,
                     f"Hệ thống phát hiện hình ảnh hoa quả hoặc thực vật (màu xanh thực vật chiếm {round(green_ratio * 100, 1)}% khung hình), không phải vùng da hay lông thú cưng.",
@@ -222,8 +271,9 @@ class AIInferenceService:
                     False
                 )
 
-            # NGUYÊN TẮC 2: Phát hiện đối tượng ngoài thú cưng (Hoa quả, bánh, đồ vật)
-            if non_pets and not cats_and_dogs:
+            # NGUYÊN TẮC 2: Phát hiện đối tượng ngoài thú cưng qua COCO (Hoa quả, bánh, đồ vật)
+            # Chỉ kích hoạt khi ảnh không có bằng chứng động vật (animal_mass < 0.25)
+            if non_pets and not cats_and_dogs and animal_mass < 0.25:
                 non_pets.sort(key=lambda x: x[1], reverse=True)
                 top_obj = non_pets[0]
                 obj_label_vi = COCO_VI_MAP.get(top_obj[0], top_obj[0])
@@ -235,8 +285,8 @@ class AIInferenceService:
                         False
                     )
 
-            # NGUYÊN TẮC 3: Ảnh chân dung người / Selfie (Người chiếm >= 35% diện tích ảnh và không có chó/mèo)
-            if people and not cats_and_dogs:
+            # NGUYÊN TẮC 3: Ảnh chân dung người / Selfie (Người chiếm >= 60% diện tích ảnh và không có chó/mèo)
+            if people and not cats_and_dogs and animal_mass < 0.20:
                 top_p = max(people, key=lambda x: x[1])
                 if top_p[1] >= 0.60 and top_p[2] >= 0.60:
                     return (
@@ -245,31 +295,6 @@ class AIInferenceService:
                         "Người",
                         False
                     )
-
-            # NGUYÊN TẮC 3B: Bộ phân loại ImageNet 1000 lớp - bắt mọi vật thể KHÔNG phải động vật
-            # (cây cảnh, đồ vật, thực phẩm, nội thất...) kể cả khi COCO không nhận ra.
-            cls_model = get_cls_model()
-            animal_evidence = False
-            if cls_model is not None and not cats_and_dogs:
-                try:
-                    cres = cls_model.predict(img, verbose=False)[0]
-                    top_idx = int(cres.probs.top1)
-                    top_conf = float(cres.probs.top1conf)
-                    top_name = cres.names[top_idx]
-                    animal_mass = float(cres.probs.data[:IMAGENET_ANIMAL_MAX_IDX + 1].sum())
-                    animal_evidence = animal_mass >= 0.15 or top_name in FUR_LIKE_CLASSES
-                    if (top_idx > IMAGENET_ANIMAL_MAX_IDX
-                            and top_conf >= 0.50
-                            and top_name not in FUR_LIKE_CLASSES):
-                        label = top_name.replace('_', ' ')
-                        return (
-                            False,
-                            f"Hệ thống nhận diện hình ảnh này là vật thể '{label}' (độ tin cậy {round(top_conf * 100)}%), không phải chó/mèo hay vùng da lông thú cưng.",
-                            label,
-                            False
-                        )
-                except Exception as e:
-                    print(f"⚠️ Lỗi bộ phân loại ImageNet Gatekeeper: {e}")
 
             # NGUYÊN TẮC 4: Kiểm tra bề mặt phẳng / ảnh trống không có cấu trúc da lông (Texture Flatness)
             gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)

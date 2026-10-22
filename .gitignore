@@ -48,6 +48,10 @@ runs/
 # Tập dữ liệu ảnh lớn (nên lưu trên cloud/drive hoặc nạp qua script)
 dataset/Pet_Skin_Disease_Detection.v1i.yolov8/
 dataset/Du_lieu_mau/
+dataset_quarantine/
+test_*.jpg
+test_*.png
+dataset_scan_report.csv
 
 # IDE & OS
 .vscode/
