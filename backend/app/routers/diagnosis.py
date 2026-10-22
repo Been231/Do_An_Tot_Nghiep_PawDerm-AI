@@ -54,6 +54,17 @@ async def run_diagnosis(
             pet_data=pet_data
         )
 
+        is_valid = ai_result.get("is_valid_image", True)
+        if not is_valid or ai_result.get("disease_key") == "unrecognized_image":
+            # Không lưu bản ghi bệnh án rác vào CSDL thú cưng khi ảnh là hoa quả / đồ vật
+            return {
+                "success": True,
+                "is_valid_image": False,
+                "pet": pet_data,
+                "diagnosis": ai_result,
+                "record": None
+            }
+
         # 2. Lưu bản ghi chẩn đoán vào Supabase
         record_payload = {
             "user_id": user_id,

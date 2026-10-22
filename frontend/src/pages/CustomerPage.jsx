@@ -211,7 +211,9 @@ export default function CustomerPage({ currentUser, onRequireAuth }) {
 
       const res = await diagnosisService.runDiagnosis(formData);
       setDiagnosisResult(res.diagnosis);
-      loadHistory();
+      if (res.is_valid_image !== false) {
+        loadHistory();
+      }
     } catch (err) {
       setDiagError(err.message || 'Lỗi phân tích AI!');
     } finally {

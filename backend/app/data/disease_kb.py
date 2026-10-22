@@ -202,6 +202,36 @@ DISEASE_DATABASE: Dict[str, Dict[str, Any]] = {
                 "prescription_info": "Gợi ý phòng bệnh: Nhỏ gáy Revolution Plus (1 tuýp/tháng) bảo vệ toàn diện khỏi ve, rận, bọ chét và giun tim."
             }
         ]
+    },
+    "unrecognized_image": {
+        "name_vi": "Ảnh không hợp lệ / Không nhận diện được thú cưng",
+        "name_en": "Unrecognized Non-Pet Image",
+        "cause": "Hình ảnh tải lên không thuộc vùng da hay cơ thể của chó/mèo. Hệ thống phát hiện đối tượng hoa quả, đồ vật hoặc hình ảnh ngoài phạm vi da liễu thú cưng.",
+        "clinical_symptoms": [
+            "Hình ảnh chụp hoa quả, thực vật, đồ ăn hoặc đồ dùng gia đình.",
+            "Ảnh người, ảnh selfie hoặc ảnh chụp không có thú cưng.",
+            "Ảnh bị nhòe mờ, chói sáng hoặc góc chụp quá xa không thấy rõ bề mặt da lông."
+        ],
+        "default_probabilities": [
+            {"label": "Chưa nhận diện được", "percent": 100.0, "color": "#f59e0b"},
+            {"label": "Bệnh nấm da", "percent": 0.0, "color": "#c86438"},
+            {"label": "Bệnh ghẻ da", "percent": 0.0, "color": "#d4a373"},
+            {"label": "Ve ghẻ", "percent": 0.0, "color": "#94a3b8"}
+        ],
+        "severity_level": "Chưa xác định",
+        "severity_badge": "badge-secondary",
+        "is_zoonotic": False,
+        "zoonotic_warning": "Không áp dụng",
+        "home_first_aid": [
+            "Đưa camera lại gần vùng da bị tổn thương của bé cún/mèo (khoảng cách 15 - 20cm).",
+            "Vén nhẹ lớp lông xung quanh để lộ rõ bề mặt da bị ửng đỏ, rụng lông hoặc đóng vảy.",
+            "Chọn nơi đủ ánh sáng tự nhiên hoặc bật đèn flash để ảnh có độ nét và màu sắc chân thực nhất.",
+            "Tham khảo khung hướng dẫn chụp ảnh chuẩn y tế bằng cách nhấn nút bên dưới."
+        ],
+        "emergency_signs": [
+            "Vui lòng chụp lại ảnh đúng vùng da bệnh của thú cưng để nhận được kết quả chẩn đoán chính xác."
+        ],
+        "clinic_recommendations": []
     }
 }
 

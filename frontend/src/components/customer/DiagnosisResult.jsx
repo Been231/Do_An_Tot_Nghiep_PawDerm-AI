@@ -2,7 +2,7 @@ import React from 'react';
 import { CalendarCheck } from 'lucide-react';
 import ExportPdfButton from '../common/ExportPdfButton';
 
-export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl, onBookAppointment }) {
+export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl, onBookAppointment, onOpenGuide }) {
   if (!diagnosisResult) {
     return (
       <div className="card diag-result-clean-card animate-fadeIn" style={{ minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
@@ -20,6 +20,88 @@ export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl,
   }
 
   const result = diagnosisResult;
+
+  // TRƯỜNG HỢP ĐẶC BIỆT: ẢNH KHÔNG PHẢI THÚ CƯNG (HOA QUẢ, ĐỒ VẬT, NGƯỜI, BỀ MẶT PHẲNG)
+  if (result.disease_key === 'unrecognized_image' || result.is_valid_image === false) {
+    return (
+      <div className="card diag-result-clean-card animate-fadeIn" style={{ border: '1.5px solid #f59e0b', background: '#fffbeb', borderRadius: 'var(--radius-lg, 16px)', padding: '24px' }}>
+        <div className="card-header-clean" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #fef3c7', paddingBottom: '12px' }}>
+          <h3 className="card-title-plain" style={{ color: '#b45309', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '800', margin: 0 }}>
+            <span>⚠️</span> Cảnh Báo Tính Hợp Lệ Của Ảnh
+          </h3>
+          <span style={{ fontSize: '12px', background: '#fef3c7', color: '#b45309', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>
+            AI Gatekeeper Guardrail
+          </span>
+        </div>
+
+        <div className="result-main-disease-row" style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '32px', height: '32px', minWidth: '32px', borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706', fontWeight: '900', fontSize: '18px' }}>
+            !
+          </div>
+          <h2 className="result-disease-name" style={{ color: '#92400e', fontSize: '18px', fontWeight: '800', margin: 0 }}>
+            {result.disease_name_vi || 'Ảnh không hợp lệ / Không nhận diện được thú cưng'}
+          </h2>
+        </div>
+
+        <div style={{ background: '#ffffff', border: '1px solid #fde68a', borderRadius: '12px', padding: '16px', marginTop: '16px' }}>
+          <p style={{ margin: '0 0 10px 0', fontSize: '13.5px', lineHeight: '1.6', color: '#78350f', whiteSpace: 'pre-line' }}>
+            {result.description || result.cause}
+          </p>
+          <div style={{ fontSize: '12.5px', color: '#b45309', fontWeight: '600' }}>
+            {result.warning}
+          </div>
+        </div>
+
+        {/* HƯỚNG DẪN CHỤP LẠI ẢNH CHUẨN Y TẾ */}
+        <div className="result-text-sections mt-4">
+          <div className="text-section-item">
+            <strong className="text-section-title" style={{ color: '#92400e', fontSize: '14px', display: 'block', marginBottom: '8px' }}>
+              📸 Hướng dẫn chụp ảnh vùng da cho bé cưng chuẩn y tế:
+            </strong>
+            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#4b5563', lineHeight: '1.6' }}>
+              {(result.home_first_aid && result.home_first_aid.length > 0 ? result.home_first_aid : [
+                'Đưa camera lại gần vùng da bị tổn thương của bé cún/mèo (khoảng cách 15 - 20cm).',
+                'Vén nhẹ lớp lông xung quanh để lộ rõ bề mặt da bị ửng đỏ, rụng lông hoặc đóng vảy.',
+                'Chọn nơi đủ ánh sáng tự nhiên hoặc bật đèn flash để ảnh có độ nét cao nhất.',
+                'Nhấn nút bên dưới để xem khung căn góc chụp chuẩn y tế.'
+              ]).map((tip, idx) => (
+                <li key={idx} style={{ marginBottom: '6px' }}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* NÚT MỞ MODAL HƯỚNG DẪN CĂN GÓC */}
+        {onOpenGuide && (
+          <div className="mt-4 pt-3" style={{ borderTop: '1px dashed #fde68a' }}>
+            <button
+              type="button"
+              className="btn-terracotta-full"
+              style={{
+                background: 'linear-gradient(135deg, #d97706, #b45309)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 18px',
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                width: '100%',
+                boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)'
+              }}
+              onClick={onOpenGuide}
+            >
+              <span>📸 Mở Khung Hướng Dẫn Căn Góc Chụp Chuẩn Y Tế</span>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
 
   const confidenceVal = Number(result.confidence) || 86.5;

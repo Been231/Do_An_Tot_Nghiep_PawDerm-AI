@@ -274,6 +274,7 @@ export default function DiagnosisTab({
           owner={currentUser}
           imageUrl={imagePreview}
           onBookAppointment={onBookAppointment}
+          onOpenGuide={() => setShowGuideModal(true)}
         />
       </div>
 
