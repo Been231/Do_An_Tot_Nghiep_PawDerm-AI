@@ -33,13 +33,19 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
     loadStats();
   }, []);
 
-  const loadQueue = async () => {
+  const loadQueue = async (activeId = null) => {
     setLoading(true);
     try {
       const data = await doctorService.getDoctorQueue();
       setQueue(data || []);
-      if (data && data.length > 0 && !selectedCase) {
-        setSelectedCase(data[0]);
+      if (data && data.length > 0) {
+        const targetId = activeId || selectedCase?.id;
+        const fresh = targetId ? data.find(d => String(d.id) === String(targetId)) : null;
+        if (fresh) {
+          setSelectedCase(fresh);
+        } else if (!selectedCase) {
+          setSelectedCase(data[0]);
+        }
       }
     } catch (e) {
       console.warn('Lỗi tải hàng đợi bác sĩ:', e);
@@ -60,9 +66,10 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
   const handleAgreeWithAI = async () => {
     if (!selectedCase) return;
     setSubmittingReview(true);
+    const targetId = selectedCase.id;
     try {
       await doctorService.submitDoctorReview({
-        record_id: selectedCase.id,
+        record_id: targetId,
         doctor_id: currentUser?.id,
         doctor_name: currentUser?.full_name || 'BS. Thú Y',
         review_status: 'agreed',
@@ -70,10 +77,14 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
         notes: 'Bác sĩ đã kiểm tra ảnh và đồng ý với nhận định của mô hình AI.'
       });
       alert('✅ Đã xác nhận đồng ý với chẩn đoán của AI!');
-      selectedCase.review_status = 'agreed';
-      selectedCase.doctor_notes = 'Đã xác nhận chính xác.';
+      setSelectedCase(prev => prev ? ({
+        ...prev,
+        review_status: 'agreed',
+        doctor_name: currentUser?.full_name || 'BS. Thú Y',
+        doctor_notes: 'Đã xác nhận chính xác.'
+      }) : null);
       loadStats();
-      loadQueue();
+      await loadQueue(targetId);
     } catch (e) {
       alert('Lỗi: ' + e.message);
     } finally {
@@ -85,9 +96,10 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
     e.preventDefault();
     if (!selectedCase) return;
     setSubmittingReview(true);
+    const targetId = selectedCase.id;
     try {
       await doctorService.submitDoctorReview({
-        record_id: selectedCase.id,
+        record_id: targetId,
         doctor_id: currentUser?.id,
         doctor_name: currentUser?.full_name || 'BS. Thú Y',
         review_status: 'corrected',
@@ -95,13 +107,17 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
         notes: doctorNotes
       });
       alert(`✏️ Đã dán nhãn lại thành công: "${correctedDisease}". Dữ liệu này đã được lưu để phục vụ Retrain AI sau này!`);
-      selectedCase.review_status = 'corrected';
-      selectedCase.doctor_corrected_disease = correctedDisease;
-      selectedCase.doctor_notes = doctorNotes;
+      setSelectedCase(prev => prev ? ({
+        ...prev,
+        review_status: 'corrected',
+        doctor_name: currentUser?.full_name || 'BS. Thú Y',
+        doctor_corrected_disease: correctedDisease,
+        doctor_notes: doctorNotes
+      }) : null);
       setIsEditing(false);
       setDoctorNotes('');
       loadStats();
-      loadQueue();
+      await loadQueue(targetId);
     } catch (e) {
       alert('Lỗi: ' + e.message);
     } finally {

@@ -1,0 +1,20 @@
+{
+  "20e225b8-3a1e-4449-bb68-799f2d3da53e": {
+    "record_id": "20e225b8-3a1e-4449-bb68-799f2d3da53e",
+    "review_status": "agreed",
+    "reviewed_by": "doc-test-01",
+    "doctor_name": "BS. Test",
+    "doctor_corrected_disease": "",
+    "doctor_notes": "Test note",
+    "reviewed_at": "2026-10-22T09:43:18.042692"
+  },
+  "42afe72c-8b6e-4a57-9664-168828957eb6": {
+    "record_id": "42afe72c-8b6e-4a57-9664-168828957eb6",
+    "review_status": "agreed",
+    "reviewed_by": "450f4a18-97c6-401b-968e-bc76fe460e1e",
+    "doctor_name": "BS. CKII Nguyen Thi Mai Huong",
+    "doctor_corrected_disease": "",
+    "doctor_notes": "Bác sĩ đã kiểm tra ảnh và đồng ý với nhận định của mô hình AI.",
+    "reviewed_at": "2026-10-22T09:50:31.639004"
+  }
+}
