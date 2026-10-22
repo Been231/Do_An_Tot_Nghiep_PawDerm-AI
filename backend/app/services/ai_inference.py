@@ -60,6 +60,32 @@ def get_coco_model():
     return _coco_model
 
 
+IMAGENET_CLS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "yolov8n-cls.pt"))
+_cls_model = None
+
+# ImageNet: chỉ số 0-397 là động vật (chó 151-268, mèo 281-285...). Còn lại là vật thể / thực vật / đồ vật.
+IMAGENET_ANIMAL_MAX_IDX = 397
+# Ảnh cận cảnh lông/da hay bị nhận nhầm thành các lớp có kết cấu giống lông -> không từ chối.
+FUR_LIKE_CLASSES = {
+    'velvet', 'wool', 'paper_towel', 'book_jacket', 'broom', 'plastic_bag', 'doormat',
+    'towel', 'bath_towel', 'swab', 'fur_coat', 'cardigan', 'sweatshirt', 'teddy', 'shower_curtain',
+    'chain_mail', 'handkerchief', 'diaper', 'sleeping_bag', 'quilt', 'mosquito_net', 'window_screen',
+    'sock', 'stole', 'wig', 'mask', 'face_powder', 'lipstick', 'hair_spray', 'sunscreen', 'band_aid'
+}
+
+def get_cls_model():
+    """Tải bộ phân loại ImageNet 1000 lớp (nhận diện vật thể lạ: cây cảnh, đồ vật...)."""
+    global _cls_model
+    if _cls_model is None:
+        try:
+            from ultralytics import YOLO
+            _cls_model = YOLO(IMAGENET_CLS_PATH if os.path.exists(IMAGENET_CLS_PATH) else 'yolov8n-cls.pt')
+            print("✅ Đã nạp bộ phân loại ImageNet Gatekeeper")
+        except Exception as e:
+            print(f"⚠️ Lỗi khởi tạo bộ phân loại ImageNet: {e}")
+    return _cls_model
+
+
 # Bản đồ nhãn tiếng Việt cho các đối tượng phi thú cưng thường gặp trong tập COCO
 COCO_VI_MAP = {
     'banana': 'Trái chuối / Hoa quả',
@@ -121,7 +147,9 @@ COCO_VI_MAP = {
     'giraffe': 'Hươu cao cổ'
 }
 
-NON_PET_COCO_CLASSES = set(COCO_VI_MAP.keys())
+NON_PET_COCO_CLASSES = set(COCO_VI_MAP.keys()) - {
+    'bird', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'teddy bear'
+}
 
 
 class AIInferenceService:
@@ -184,8 +212,9 @@ class AIInferenceService:
             green_mask = (h_chan >= 30) & (h_chan <= 85) & (s_chan >= 40) & (v_chan >= 30)
             green_ratio = float(np.sum(green_mask)) / float(max(1, img_area))
 
-            # NGUYÊN TẮC 1: Nếu màu xanh lá thực vật chiếm >= 12% khung hình và không thấy chó/mèo
-            if green_ratio >= 0.12 and not cats_and_dogs:
+            # NGUYÊN TẮC 1: Màu xanh lá thực vật chiếm >= 35% khung hình và không thấy chó/mèo
+            # (ngưỡng cao để không chặn nhầm ảnh thú cưng nằm trên cỏ; ca thực vật nhẹ hơn do bộ phân loại ImageNet xử lý)
+            if green_ratio >= 0.35 and not cats_and_dogs:
                 return (
                     False,
                     f"Hệ thống phát hiện hình ảnh hoa quả hoặc thực vật (màu xanh thực vật chiếm {round(green_ratio * 100, 1)}% khung hình), không phải vùng da hay lông thú cưng.",
@@ -198,7 +227,7 @@ class AIInferenceService:
                 non_pets.sort(key=lambda x: x[1], reverse=True)
                 top_obj = non_pets[0]
                 obj_label_vi = COCO_VI_MAP.get(top_obj[0], top_obj[0])
-                if top_obj[1] >= 0.22:
+                if top_obj[1] >= 0.40:
                     return (
                         False,
                         f"Hệ thống phát hiện hình ảnh có chứa '{obj_label_vi}' (độ tin cậy {round(top_obj[1] * 100)}%), không phải vùng da lông chó/mèo.",
@@ -209,13 +238,38 @@ class AIInferenceService:
             # NGUYÊN TẮC 3: Ảnh chân dung người / Selfie (Người chiếm >= 35% diện tích ảnh và không có chó/mèo)
             if people and not cats_and_dogs:
                 top_p = max(people, key=lambda x: x[1])
-                if top_p[1] >= 0.45 and top_p[2] >= 0.35:
+                if top_p[1] >= 0.60 and top_p[2] >= 0.60:
                     return (
                         False,
                         "Hệ thống phát hiện hình ảnh người hoặc ảnh chụp khuôn mặt. Vui lòng chụp rõ cận cảnh vùng da lông của bé chó hoặc mèo.",
                         "Người",
                         False
                     )
+
+            # NGUYÊN TẮC 3B: Bộ phân loại ImageNet 1000 lớp - bắt mọi vật thể KHÔNG phải động vật
+            # (cây cảnh, đồ vật, thực phẩm, nội thất...) kể cả khi COCO không nhận ra.
+            cls_model = get_cls_model()
+            animal_evidence = False
+            if cls_model is not None and not cats_and_dogs:
+                try:
+                    cres = cls_model.predict(img, verbose=False)[0]
+                    top_idx = int(cres.probs.top1)
+                    top_conf = float(cres.probs.top1conf)
+                    top_name = cres.names[top_idx]
+                    animal_mass = float(cres.probs.data[:IMAGENET_ANIMAL_MAX_IDX + 1].sum())
+                    animal_evidence = animal_mass >= 0.15 or top_name in FUR_LIKE_CLASSES
+                    if (top_idx > IMAGENET_ANIMAL_MAX_IDX
+                            and top_conf >= 0.50
+                            and top_name not in FUR_LIKE_CLASSES):
+                        label = top_name.replace('_', ' ')
+                        return (
+                            False,
+                            f"Hệ thống nhận diện hình ảnh này là vật thể '{label}' (độ tin cậy {round(top_conf * 100)}%), không phải chó/mèo hay vùng da lông thú cưng.",
+                            label,
+                            False
+                        )
+                except Exception as e:
+                    print(f"⚠️ Lỗi bộ phân loại ImageNet Gatekeeper: {e}")
 
             # NGUYÊN TẮC 4: Kiểm tra bề mặt phẳng / ảnh trống không có cấu trúc da lông (Texture Flatness)
             gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
@@ -230,7 +284,7 @@ class AIInferenceService:
                     False
                 )
 
-            is_pet_confirmed = len(cats_and_dogs) > 0 and max(x[1] for x in cats_and_dogs) >= 0.25
+            is_pet_confirmed = (len(cats_and_dogs) > 0 and max(x[1] for x in cats_and_dogs) >= 0.25) or animal_evidence
             return (True, "Hợp lệ", None, is_pet_confirmed)
 
         except Exception as e:
@@ -353,6 +407,14 @@ class AIInferenceService:
         # ---------------------------------------------------------------------
         # 4. CƠ CHẾ KẾT HỢP ĐA PHƯƠNG THỨC (ENSEMBLE: ẢNH + TRIỆU CHỨNG)
         # ---------------------------------------------------------------------
+        # CHỐT CHẶN CUỐI: không có bằng chứng nào là thú cưng (không thấy chó/mèo, mô hình da liễu cũng không bắt được gì)
+        # -> không được phép kết luận "khỏe mạnh" hay bệnh, yêu cầu chụp lại.
+        if image_bytes and img is not None and not is_pet_confirmed and not yolo_detected:
+            return cls._build_unrecognized_result(
+                reason="Hệ thống không tìm thấy chó/mèo hoặc vùng da lông có đặc trưng sinh học rõ ràng trong ảnh.",
+                detected_label=None
+            )
+
         custom_probs = None
         custom_desc = None
         custom_warning = None
