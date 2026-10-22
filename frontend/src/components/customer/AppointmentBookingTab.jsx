@@ -23,21 +23,6 @@ const HOSPITAL_INFO = {
   hours: '8h-17h (Tất cả các ngày trong tuần)'
 };
 
-// Gợi ý nhanh chi tiết bệnh để khách bấm thêm vào mô tả
-const CLINICAL_DETAIL_TAGS = [
-  'Vết đỏ & rụng lông ở tai/mặt',
-  'Ngứa gãi dữ dội về đêm',
-  'Da sần sùi / đóng vảy sừng',
-  'Vảy gàu trắng ngứa ngáy',
-  'Mụn mủ & lở loét chảy dịch',
-  'Có mùi hôi tanh khó chịu',
-  'Mới phát hiện 2-3 ngày',
-  'Kéo dài hơn 1 tuần',
-  'Bé liếm cắn liên tục',
-  'Chưa từng dùng thuốc điều trị',
-  'Đang dùng thuốc bôi ngoài da'
-];
-
 export default function AppointmentBookingTab({
   currentUser,
   pets = [],
@@ -78,10 +63,6 @@ export default function AppointmentBookingTab({
   const [slotAvailability, setSlotAvailability] = useState({});
   const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Trạng thái đính kèm chẩn đoán AI
-  const [attachAiDiagnosis, setAttachAiDiagnosis] = useState(false);
-  const [selectedAiScan, setSelectedAiScan] = useState(null);
-
   const SERVICES = [
     { title: 'Khám da liễu chuyên sâu & Soi tươi vi nấm', price: '350.000đ', desc: 'Cạo vảy soi tươi dưới kính hiển vi, phát hiện nấm sợi & ký sinh trùng' },
     { title: 'Khám sơ bộ & Hội chẩn sau kết quả AI', price: '200.000đ', desc: 'Bác sĩ kiểm tra đối chiếu trực tiếp với kết quả quét AI YOLOv8' },
@@ -108,27 +89,21 @@ export default function AppointmentBookingTab({
     }
   }, [pets]);
 
-  // 4. Khởi tạo dữ liệu chẩn đoán AI có sẵn (từ scan vừa thực hiện hoặc chuyển tiếp)
+  // 4. Khởi tạo dữ liệu khi được chuyển tiếp từ màn hình khác
   useEffect(() => {
-    const activeScan = initialBookingData || recentDiagnosis || (historyRecords.length > 0 ? historyRecords[0] : null);
-    if (activeScan) {
-      setSelectedAiScan(activeScan);
-      // Nếu đến từ nút bấm "Đặt lịch ngay" trong kết quả chẩn đoán thì tự động bật đính kèm
-      if (initialBookingData) {
-        setAttachAiDiagnosis(true);
-        if (initialBookingData.pet?.id) {
-          setSelectedPetId(initialBookingData.pet.id);
-        } else if (initialBookingData.pet?.name) {
-          setCustomPetName(initialBookingData.pet.name);
-          setSelectedPetId('custom');
-        }
-        if (initialBookingData.notes) {
-          setNotes(initialBookingData.notes);
-        }
-        setServiceTitle('Khám sơ bộ & Hội chẩn sau kết quả AI');
+    if (initialBookingData) {
+      if (initialBookingData.pet?.id) {
+        setSelectedPetId(initialBookingData.pet.id);
+      } else if (initialBookingData.pet?.name) {
+        setCustomPetName(initialBookingData.pet.name);
+        setSelectedPetId('custom');
       }
+      if (initialBookingData.notes) {
+        setNotes(initialBookingData.notes);
+      }
+      setServiceTitle('Khám sơ bộ & Hội chẩn sau kết quả AI');
     }
-  }, [initialBookingData, recentDiagnosis, historyRecords]);
+  }, [initialBookingData]);
 
   const loadAppointments = async () => {
     if (!currentUser?.id) {
@@ -170,32 +145,7 @@ export default function AppointmentBookingTab({
     }
   };
 
-  // Xử lý bật/tắt đính kèm kết quả Chẩn đoán AI vào mô tả
-  const handleToggleAiDiagnosis = (checked) => {
-    setAttachAiDiagnosis(checked);
-    if (checked && selectedAiScan) {
-      const disease = selectedAiScan.disease_name_vi || selectedAiScan.diseaseName || selectedAiScan.disease_key || 'Nghi ngờ bệnh da liễu';
-      const conf = selectedAiScan.confidence ? `${Math.round(selectedAiScan.confidence)}%` : '';
-      const symList = Array.isArray(selectedAiScan.clinical_symptoms)
-        ? selectedAiScan.clinical_symptoms.slice(0, 3).join(', ')
-        : (selectedAiScan.symptoms ? selectedAiScan.symptoms.toString() : '');
 
-      const aiSnippet = `[Kết quả Chẩn đoán AI: ${disease}${conf ? ` (${conf})` : ''}${symList ? ` - Dấu hiệu: ${symList}` : ''}]`;
-
-      if (!notes.includes(aiSnippet)) {
-        setNotes(prev => prev ? `${aiSnippet}\n${prev}` : aiSnippet);
-      }
-    }
-  };
-
-  // Bấm thêm chi tiết bệnh vào mô tả để bác sĩ chẩn đoán rõ hơn
-  const handleAddClinicalDetail = (tag) => {
-    setNotes(prev => {
-      if (!prev) return tag;
-      if (prev.includes(tag)) return prev; // tránh trùng lặp
-      return `${prev} | ${tag}`;
-    });
-  };
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
@@ -279,7 +229,6 @@ export default function AppointmentBookingTab({
       if (selectedPetId === 'custom') {
         setCustomPetName('');
       }
-      setAttachAiDiagnosis(false);
 
       // Tải lại danh sách lịch hẹn và cập nhật số chỗ trống
       loadAppointments();
@@ -508,11 +457,48 @@ export default function AppointmentBookingTab({
               </div>
             </div>
 
-            {/* 4 MỐC KHUNG GIỜ KHÁM & GIỚI HẠN 12 NGƯỜI */}
+            {/* DỊCH VỤ KHÁM & BÁC SĨ */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)' }}>
+                  Dịch vụ khám da liễu *
+                </label>
+                <select
+                  className="clean-input-pill"
+                  value={serviceTitle}
+                  onChange={(e) => setServiceTitle(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}
+                >
+                  {SERVICES.map((s, idx) => (
+                    <option key={idx} value={s.title}>
+                      {s.title} ({s.price})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)' }}>
+                  Bác sĩ chuyên khoa phụ trách *
+                </label>
+                <select
+                  className="clean-input-pill"
+                  value={doctorName}
+                  onChange={(e) => setDoctorName(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}
+                >
+                  <option value="BS. CKII Nguyễn Thị Mai Hương">🩺 BS. CKII Nguyễn Thị Mai Hương (Trưởng khoa)</option>
+                  <option value="BS. ThS Lê Hoàng Nam">🩺 BS. ThS Lê Hoàng Nam (Chuyên gia Ký sinh trùng)</option>
+                  <option value="Hội đồng Bác sĩ Da Liễu PawCare">🛡️ Hội đồng Bác sĩ Da Liễu Bệnh viện</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 4 MỐC KHUNG GIỜ KHÁM (ĐẶT DƯỚI DỊCH VỤ VÀ BÁC SĨ) */}
             <div className="mb-3">
               <div className="flex-between mb-2">
                 <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', margin: 0 }}>
-                  Khung giờ khám bệnh viện (4 mốc chuẩn, tối đa 12 người/khung) *
+                  Khung giờ khám bệnh viện *
                 </label>
                 {loadingSlots && (
                   <span style={{ fontSize: '11.5px', color: 'var(--primary-teal)' }}>
@@ -585,130 +571,7 @@ export default function AppointmentBookingTab({
               </div>
             </div>
 
-            {/* DỊCH VỤ KHÁM & BÁC SĨ */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)' }}>
-                  Dịch vụ khám da liễu *
-                </label>
-                <select
-                  className="clean-input-pill"
-                  value={serviceTitle}
-                  onChange={(e) => setServiceTitle(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}
-                >
-                  {SERVICES.map((s, idx) => (
-                    <option key={idx} value={s.title}>
-                      {s.title} ({s.price})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)' }}>
-                  Bác sĩ chuyên khoa phụ trách *
-                </label>
-                <select
-                  className="clean-input-pill"
-                  value={doctorName}
-                  onChange={(e) => setDoctorName(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}
-                >
-                  <option value="BS. CKII Nguyễn Thị Mai Hương">🩺 BS. CKII Nguyễn Thị Mai Hương (Trưởng khoa)</option>
-                  <option value="BS. ThS Lê Hoàng Nam">🩺 BS. ThS Lê Hoàng Nam (Chuyên gia Ký sinh trùng)</option>
-                  <option value="Hội đồng Bác sĩ Da Liễu PawCare">🛡️ Hội đồng Bác sĩ Da Liễu Bệnh viện</option>
-                </select>
-              </div>
-            </div>
-
-            {/* 5. TÍCH HỢP CHẨN ĐOÁN AI & BẤM THÊM CHI TIẾT BỆNH */}
-            <div
-              className="ai-diagnosis-link-box mb-3"
-              style={{
-                background: 'linear-gradient(135deg, rgba(42, 157, 143, 0.08) 0%, rgba(217, 119, 6, 0.06) 100%)',
-                border: '1.5px solid var(--primary-teal-border)',
-                borderRadius: '12px',
-                padding: '14px 16px'
-              }}
-            >
-              <div className="flex-between flex-wrap gap-2 mb-2">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={16} style={{ color: 'var(--primary-teal)' }} />
-                  <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>
-                    Lấy mô tả từ kết quả Chẩn đoán AI
-                  </strong>
-                </div>
-
-                {selectedAiScan && (
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--primary-teal-dark)' }}>
-                    <input
-                      type="checkbox"
-                      checked={attachAiDiagnosis}
-                      onChange={(e) => handleToggleAiDiagnosis(e.target.checked)}
-                      style={{ width: '16px', height: '16px', accentColor: 'var(--primary-teal)' }}
-                    />
-                    <span>Tích vào để lấy mô tả AI</span>
-                  </label>
-                )}
-              </div>
-
-              {selectedAiScan ? (
-                <div style={{ fontSize: '12.5px', color: 'var(--text-body)', lineHeight: '1.5', background: '#ffffff', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <div>
-                    🎯 Bệnh AI nhận diện:{' '}
-                    <strong style={{ color: 'var(--primary-orange-dark)' }}>
-                      {selectedAiScan.disease_name_vi || selectedAiScan.diseaseName || selectedAiScan.disease_key}
-                    </strong>
-                    {selectedAiScan.confidence && (
-                      <span style={{ color: 'var(--text-muted)' }}> ({Math.round(selectedAiScan.confidence)}% tin cậy)</span>
-                    )}
-                  </div>
-                  {selectedAiScan.clinical_symptoms && selectedAiScan.clinical_symptoms.length > 0 && (
-                    <div style={{ color: 'var(--text-muted)', fontSize: '11.5px', marginTop: '2px' }}>
-                      Triệu chứng quét được: {selectedAiScan.clinical_symptoms.slice(0, 3).join(', ')}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  Chưa có lần quét AI nào gần đây. Bạn có thể tự điền hoặc bấm các gợi ý bên dưới để thêm chi tiết.
-                </div>
-              )}
-
-              {/* BẤM THÊM CHI TIẾT BỆNH VÀO MÔ TẢ */}
-              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed var(--border-subtle)' }}>
-                <span style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  👇 Bấm thêm để ghi thêm chi tiết của bệnh cho Bác sĩ chẩn đoán rõ hơn:
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {CLINICAL_DETAIL_TAGS.map((tag, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleAddClinicalDetail(tag)}
-                      className="btn-filter-pill"
-                      style={{
-                        fontSize: '11.5px',
-                        padding: '4px 9px',
-                        borderRadius: '20px',
-                        background: notes.includes(tag) ? 'var(--primary-teal-light)' : '#ffffff',
-                        color: notes.includes(tag) ? 'var(--primary-teal-dark)' : 'var(--text-body)',
-                        border: notes.includes(tag) ? '1px solid var(--primary-teal)' : '1px solid var(--border-subtle)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      <span>+</span> {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Ô NHẬP MÔ TẢ & GHI CHÚ TỔNG HỢP */}
+            {/* Ô NHẬP MÔ TẢ & GHI CHÚ (KHÔNG CÒN HỘP MÔ TẢ AI) */}
             <div className="mb-4">
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)' }}>
                 Nội dung mô tả & Ghi chú gửi Bác sĩ khám sơ bộ
@@ -716,7 +579,7 @@ export default function AppointmentBookingTab({
               <textarea
                 rows={3}
                 className="clean-input-pill"
-                placeholder="Mô tả thêm tình trạng bé cưng (vị trí tổn thương, thời gian phát hiện, thuốc đã dùng...)"
+                placeholder="Mô tả thêm tình trạng bé cưng (vị trí tổn thương, thời gian phát hiện, biểu hiện lạ...)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--radius-md)', resize: 'vertical' }}
