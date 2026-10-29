@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   CreditCard, TrendingUp, CheckCircle2, Clock, AlertTriangle,
-  RefreshCw, Search, ShieldCheck, Zap, ArrowUpRight, DollarSign, Calendar
+  RefreshCw, Search, ShieldCheck, Zap, ArrowUpRight, DollarSign,
+  Calendar, Eye, FileText, Printer, X, Download
 } from 'lucide-react';
 import { appointmentService } from '../../services/appointmentService';
 
@@ -11,6 +12,7 @@ export default function AdminPaymentsTab() {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'paid' | 'pending_payment' | 'expired'
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   useEffect(() => {
     loadTransactions();
@@ -39,6 +41,10 @@ export default function AdminPaymentsTab() {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handlePrintReceipt = () => {
+    window.print();
   };
 
   const transactions = data?.transactions || [];
@@ -71,7 +77,7 @@ export default function AdminPaymentsTab() {
             <span>Quản Lý Dòng Tiền & Giao Dịch Thanh Toán VietQR</span>
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
-            Hệ thống thanh toán tự động thời gian thực — Khách quét mã VietQR Napas247, hệ thống tự động xác nhận không cần nhân viên thủ công.
+            Admin xem lại toàn bộ lịch sử thanh toán, doanh thu viện, biên lai điện tử và kiểm soát trạng thái giao dịch theo thời gian thực.
           </p>
         </div>
 
@@ -301,29 +307,46 @@ export default function AdminPaymentsTab() {
                       )}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                      {tx.payment_status !== 'paid' ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        {/* NÚT XEM CHI TIẾT BIÊN LAI */}
                         <button
                           type="button"
-                          onClick={() => handleSimulatePayment(tx.appointment_id)}
-                          disabled={actionLoading === tx.appointment_id}
+                          onClick={() => setSelectedReceipt(tx)}
                           className="btn-filter-pill"
                           style={{
                             fontSize: '11.5px',
                             padding: '4px 8px',
-                            background: 'var(--primary-orange-light)',
-                            color: 'var(--primary-orange-dark)',
-                            border: '1px solid var(--primary-orange)'
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
                           }}
-                          title="Kích hoạt demo thanh toán ngay dành cho buổi bảo vệ đồ án"
+                          title="Xem chi tiết biên lai hóa đơn"
                         >
-                          <Zap size={11} className={actionLoading === tx.appointment_id ? 'spin' : ''} />
-                          <span>{actionLoading === tx.appointment_id ? 'Đang duyệt...' : '⚡ Duyệt demo'}</span>
+                          <Eye size={12} />
+                          <span>Biên lai</span>
                         </button>
-                      ) : (
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {tx.paid_at ? new Date(tx.paid_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—'}
-                        </span>
-                      )}
+
+                        {/* NÚT DUYỆT DEMO NẾU CHƯA THANH TOÁN */}
+                        {tx.payment_status !== 'paid' && (
+                          <button
+                            type="button"
+                            onClick={() => handleSimulatePayment(tx.appointment_id)}
+                            disabled={actionLoading === tx.appointment_id}
+                            className="btn-filter-pill"
+                            style={{
+                              fontSize: '11.5px',
+                              padding: '4px 8px',
+                              background: 'var(--primary-orange-light)',
+                              color: 'var(--primary-orange-dark)',
+                              border: '1px solid var(--primary-orange)'
+                            }}
+                            title="Kích hoạt demo thanh toán ngay dành cho buổi bảo vệ đồ án"
+                          >
+                            <Zap size={11} className={actionLoading === tx.appointment_id ? 'spin' : ''} />
+                            <span>{actionLoading === tx.appointment_id ? '...' : '⚡ Duyệt'}</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -332,6 +355,201 @@ export default function AdminPaymentsTab() {
           </div>
         )}
       </div>
+
+      {/* ===================== MODAL BIÊN LAI / HÓA ĐƠN ĐIỆN TỬ ===================== */}
+      {selectedReceipt && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedReceipt(null);
+          }}
+        >
+          <div
+            className="modal-content animate-scaleUp"
+            style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '520px',
+              padding: '28px 24px',
+              position: 'relative',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+              border: '1px solid var(--border-subtle)'
+            }}
+          >
+            {/* NÚT ĐÓNG */}
+            <button
+              onClick={() => setSelectedReceipt(null)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'var(--bg-subtle)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'var(--text-muted)'
+              }}
+            >
+              <X size={16} />
+            </button>
+
+            {/* HEADER BIÊN LAI */}
+            <div style={{ textAlign: 'center', borderBottom: '2px dashed var(--border-subtle)', paddingBottom: '16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '28px', marginBottom: '4px' }}>🏥🐾</div>
+              <h3 style={{ fontSize: '17px', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>
+                BỆNH VIỆN THÚ Y PAWDERM
+              </h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                1A Lê Thị Xuyến, quận Thanh Khuê, Đà Nẵng · Hotline: 0795477302
+              </p>
+              <div
+                style={{
+                  display: 'inline-block',
+                  marginTop: '10px',
+                  background: 'var(--primary-teal-light)',
+                  color: 'var(--primary-teal-dark)',
+                  padding: '3px 12px',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}
+              >
+                PHIẾU THU TIỀN DỊCH VỤ KHÁM CHỮA BỆNH
+              </div>
+            </div>
+
+            {/* THÔNG TIN CHI TIẾT */}
+            <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Mã lịch hẹn:</span>
+                <strong style={{ color: 'var(--primary-teal-dark)' }}>#{selectedReceipt.appointment_id}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Khách hàng:</span>
+                <strong>{selectedReceipt.owner_name}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Số điện thoại:</span>
+                <span>{selectedReceipt.phone}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Bệnh nhân thú cưng:</span>
+                <strong>{selectedReceipt.pet_name}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Dịch vụ khám:</span>
+                <strong style={{ color: 'var(--primary-orange-dark)', textAlign: 'right', maxWidth: '280px' }}>
+                  {selectedReceipt.service_title}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Thời gian hẹn khám:</span>
+                <span>{selectedReceipt.appointment_time} · {selectedReceipt.appointment_date}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Phương thức:</span>
+                <span>{selectedReceipt.payment_method || 'VietQR Napas247 Online'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Nội dung chuyển khoản:</span>
+                <code style={{ background: 'var(--bg-subtle)', padding: '2px 6px', borderRadius: '4px' }}>
+                  {selectedReceipt.payment_memo}
+                </code>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Thời gian thanh toán:</span>
+                <span>{selectedReceipt.paid_at ? new Date(selectedReceipt.paid_at).toLocaleString('vi-VN') : 'Đang chờ thanh toán'}</span>
+              </div>
+            </div>
+
+            {/* TỔNG TIỀN VÀ CON DẤU */}
+            <div
+              style={{
+                background: selectedReceipt.payment_status === 'paid' ? '#ecfdf5' : '#fffbeb',
+                border: `1.5px solid ${selectedReceipt.payment_status === 'paid' ? '#a7f3d0' : '#fde68a'}`,
+                borderRadius: '12px',
+                padding: '14px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '18px'
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>TỔNG SỐ TIỀN THU:</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: selectedReceipt.payment_status === 'paid' ? '#059669' : '#d97706' }}>
+                  {(selectedReceipt.payment_amount || 200000).toLocaleString('vi-VN')} VNĐ
+                </div>
+              </div>
+
+              {/* DẤU MỘC ĐIỆN TỬ */}
+              <div
+                style={{
+                  border: `2px solid ${selectedReceipt.payment_status === 'paid' ? '#059669' : '#d97706'}`,
+                  color: selectedReceipt.payment_status === 'paid' ? '#059669' : '#d97706',
+                  borderRadius: '8px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                  transform: 'rotate(-4deg)'
+                }}
+              >
+                {selectedReceipt.payment_status === 'paid' ? '✓ ĐÃ THU TIỀN' : '⏳ CHỜ THANH TOÁN'}
+              </div>
+            </div>
+
+            {/* NÚT THAO TÁC BIÊN LAI */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={handlePrintReceipt}
+                className="btn-primary-gradient"
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  fontSize: '13.5px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                <Printer size={15} />
+                <span>In Biên Lai</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedReceipt(null)}
+                className="btn-filter-pill"
+                style={{ padding: '10px 16px', fontSize: '13px' }}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
