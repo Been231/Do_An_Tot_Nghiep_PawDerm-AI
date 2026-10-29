@@ -252,12 +252,10 @@ class AppointmentService:
                     sup_user_id = "8cb7a542-dc84-4ad1-97b5-94a2a72e24d7"
 
                 try:
-                    client.table("appointments").insert({
-                        "id": new_item["id"],
+                    apt_sup_payload = {
                         "user_id": sup_user_id,
                         "owner_name": new_item["owner_name"],
                         "phone": new_item["phone"],
-                        "pet_id": new_item["pet_id"],
                         "pet_name": new_item["pet_name"],
                         "pet_species": new_item["pet_species"],
                         "service_title": new_item["service_title"],
@@ -270,9 +268,12 @@ class AppointmentService:
                         "payment_qr_url": new_item["payment_qr_url"],
                         "payment_qr_expires_at": new_item["payment_qr_expires_at"],
                         "created_at": new_item["created_at"]
-                    }).execute()
+                    }
+                    sup_res = client.table("appointments").insert(apt_sup_payload).execute()
+                    if sup_res.data:
+                        new_item["supabase_id"] = sup_res.data[0].get("id")
                 except Exception as ex_full:
-                    # Fallback lưu các cột cơ bản vào bảng appointments hiện có trên Supabase (tự sinh UUID)
+                    # Fallback lưu các cột cơ bản vào bảng appointments hiện có trên Supabase
                     sup_res = client.table("appointments").insert({
                         "user_id": sup_user_id,
                         "pet_name": new_item["pet_name"],
@@ -405,11 +406,15 @@ class AppointmentService:
         try:
             client = get_supabase_client()
             if client:
-                client.table("appointments").update({
+                up_payload = {
                     "payment_status": "paid",
                     "paid_at": target["paid_at"],
                     "payment_method": method
-                }).eq("id", target["id"]).execute()
+                }
+                if target.get("supabase_id"):
+                    client.table("appointments").update(up_payload).eq("id", target["supabase_id"]).execute()
+                elif target.get("payment_memo"):
+                    client.table("appointments").update(up_payload).eq("payment_memo", target["payment_memo"]).execute()
         except Exception as e_sup:
             pass
 
