@@ -103,7 +103,7 @@ class SupabaseService:
         """Tài khoản mẫu fallback dự phòng."""
         mock_users = {
             "khachhang": {
-                "id": "8cb7a542-d6aa-46ba-bca4-d4bcf84ec13c",
+                "id": "8cb7a542-dc84-4ad1-97b5-94a2a72e24d7",
                 "username": "khachhang",
                 "full_name": "Nguyễn Văn Khách",
                 "phone": "0901234567",
@@ -113,7 +113,7 @@ class SupabaseService:
                 "status": "active"
             },
             "bacsi": {
-                "id": "bacsi-uuid-0000-0000-000000000001",
+                "id": "450f4a18-97c6-401b-968e-bc76fe460e1e",
                 "username": "bacsi",
                 "full_name": "BS. CKII Nguyễn Thị Mai Hương",
                 "phone": "0918889999",
@@ -125,7 +125,7 @@ class SupabaseService:
                 "clinic_name": "Bệnh viện Thú Y PawCare TP. Hồ Chí Minh"
             },
             "admin": {
-                "id": "admin-uuid-0000-0000-000000000001",
+                "id": "8748fc12-c022-4eba-b9c6-d5d6375a743a",
                 "username": "admin",
                 "full_name": "Quản trị viên Hệ thống PawDerm",
                 "phone": "0988001122",
@@ -442,16 +442,50 @@ class SupabaseService:
         }
 
         if client:
+            user_id = record.get("user_id")
+            pet_id = record.get("pet_id")
+            try:
+                # 1. Đảm bảo user_id là UUID hợp lệ trong DB Supabase
+                if user_id:
+                    u_chk = client.table("users").select("id").eq("id", user_id).limit(1).execute()
+                    if not u_chk.data:
+                        user_id = None
+                if not user_id:
+                    u_default = client.table("users").select("id").eq("username", "khachhang").limit(1).execute()
+                    if u_default.data:
+                        user_id = u_default.data[0]["id"]
+
+                # 2. Đảm bảo pet_id là UUID hợp lệ liên kết với bảng pets trong Supabase
+                if pet_id:
+                    p_chk = client.table("pets").select("id").eq("id", pet_id).limit(1).execute()
+                    if not p_chk.data:
+                        pet_id = None
+                if not pet_id and user_id:
+                    p_user = client.table("pets").select("id").eq("user_id", user_id).limit(1).execute()
+                    if p_user.data:
+                        pet_id = p_user.data[0]["id"]
+                if not pet_id:
+                    any_pet = client.table("pets").select("id, user_id").limit(1).execute()
+                    if any_pet.data:
+                        pet_id = any_pet.data[0]["id"]
+                        if not user_id:
+                            user_id = any_pet.data[0]["user_id"]
+            except Exception as e_res:
+                print(f"⚠️ Resolve user/pet: {e_res}")
+
+            payload["user_id"] = user_id
+            payload["pet_id"] = pet_id
+
             try:
                 res = client.table("diagnosis_records").insert(payload).execute()
                 if res.data:
                     return {"success": True, "record": res.data[0]}
             except Exception as e:
-                # Nếu bảng chưa có các cột mới, lưu các cột cơ bản
+                # Nếu bảng chưa có các cột mới, lưu các cột cơ bản đã tồn tại trong Supabase
                 try:
                     basic_payload = {
-                        "pet_id": record.get("pet_id"),
-                        "user_id": record.get("user_id"),
+                        "pet_id": pet_id,
+                        "user_id": user_id,
                         "disease_key": record.get("disease_key", ""),
                         "disease_name_vi": record.get("disease_name_vi", ""),
                         "disease_name_en": record.get("disease_name_en", ""),

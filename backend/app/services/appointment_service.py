@@ -245,10 +245,16 @@ class AppointmentService:
         try:
             client = get_supabase_client()
             if client:
+                sup_user_id = new_item.get("user_id")
+                try:
+                    uuid.UUID(str(sup_user_id))
+                except Exception:
+                    sup_user_id = "8cb7a542-dc84-4ad1-97b5-94a2a72e24d7"
+
                 try:
                     client.table("appointments").insert({
                         "id": new_item["id"],
-                        "user_id": new_item["user_id"],
+                        "user_id": sup_user_id,
                         "owner_name": new_item["owner_name"],
                         "phone": new_item["phone"],
                         "pet_id": new_item["pet_id"],
@@ -266,13 +272,15 @@ class AppointmentService:
                         "created_at": new_item["created_at"]
                     }).execute()
                 except Exception as ex_full:
-                    # Fallback lưu các cột cơ bản nếu Supabase chưa chạy migration mới
-                    client.table("appointments").insert({
-                        "user_id": new_item["user_id"],
+                    # Fallback lưu các cột cơ bản vào bảng appointments hiện có trên Supabase (tự sinh UUID)
+                    sup_res = client.table("appointments").insert({
+                        "user_id": sup_user_id,
                         "pet_name": new_item["pet_name"],
                         "service_title": new_item["service_title"],
                         "status": "pending"
                     }).execute()
+                    if sup_res.data:
+                        new_item["supabase_id"] = sup_res.data[0].get("id")
         except Exception as e:
             print("Ghi chú: Lưu Supabase fallback sang JSON store:", e)
 
