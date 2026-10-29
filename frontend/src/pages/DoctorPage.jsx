@@ -163,14 +163,14 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
           onClick={() => setDoctorActiveTab('appointments')}
         >
           <CalendarCheck size={16} />
-          <span>Lịch Hẹn Khám</span>
+          <span>Lịch hẹn khám</span>
         </button>
         <button
           className={`sub-tab-btn ${doctorActiveTab === 'review_queue' ? 'active' : ''}`}
           onClick={() => setDoctorActiveTab('review_queue')}
         >
           <Sparkles size={16} />
-          <span>Thẩm Định Chẩn Đoán AI ({queue.length})</span>
+          <span>Thẩm định chẩn đoán AI ({queue.length})</span>
         </button>
       </div>
 

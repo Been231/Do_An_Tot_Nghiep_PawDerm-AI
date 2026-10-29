@@ -104,7 +104,7 @@ export default function DoctorAppointmentQueue({ currentUser }) {
       <div className="flex-between flex-wrap gap-2 mb-3">
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>📅</span> Danh Sách Khách Hàng Đặt Lịch Khám & Khám Sơ Bộ Tại Bệnh Viện
+            <span>📅</span> Danh sách khách hàng đặt lịch khám tại bệnh viện
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
             Bác sĩ xem triệu chứng khách hàng gửi, thực hiện <strong>Khám sơ bộ & Đưa ra dự đoán bệnh</strong> để hỗ trợ khách hàng chuẩn bị trước khi đến viện.
