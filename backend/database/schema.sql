@@ -294,7 +294,19 @@ CREATE INDEX IF NOT EXISTS idx_appointments_payment_status ON public.appointment
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON public.appointments(appointment_date);
 
 -- ============================================================
--- 7. TẮT ROW LEVEL SECURITY (RLS) ĐỂ APP TRUY XUẤT TỰ DO
+-- 7. BẢNG TỔNG HỢP DOANH THU & CHỈ SỐ GIAO DỊCH (VIEW CHO ADMIN)
+-- ============================================================
+CREATE OR REPLACE VIEW public.v_payment_summary AS
+SELECT 
+    COUNT(*) AS tong_so_giao_dich,
+    COUNT(*) FILTER (WHERE payment_status = 'paid') AS so_don_thanh_cong,
+    COUNT(*) FILTER (WHERE payment_status = 'pending_payment') AS so_don_dang_cho,
+    COUNT(*) FILTER (WHERE payment_status = 'expired') AS so_don_het_han,
+    COALESCE(SUM(payment_amount) FILTER (WHERE payment_status = 'paid'), 0) AS tong_doanh_thu_vnd
+FROM public.appointments;
+
+-- ============================================================
+-- 8. TẮT ROW LEVEL SECURITY (RLS) ĐỂ APP TRUY XUẤT TỰ DO
 -- ============================================================
 ALTER TABLE IF EXISTS public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.pets DISABLE ROW LEVEL SECURITY;
