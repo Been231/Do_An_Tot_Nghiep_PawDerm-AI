@@ -253,10 +253,53 @@ CREATE INDEX IF NOT EXISTS idx_diag_review_status ON public.diagnosis_records(re
 CREATE INDEX IF NOT EXISTS idx_diag_created       ON public.diagnosis_records(created_at DESC);
 
 -- ============================================================
--- 6. TẮT ROW LEVEL SECURITY (RLS) ĐỂ APP TRUY XUẤT TỰ DO
+-- 6. BẢNG appointments: Lịch hẹn khám & Thanh toán VietQR
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.appointments (
+    id                      TEXT PRIMARY KEY,
+    user_id                 TEXT NOT NULL,
+    owner_name              TEXT DEFAULT 'Khách hàng',
+    phone                   TEXT DEFAULT '',
+    pet_id                  TEXT DEFAULT '',
+    pet_name                TEXT NOT NULL,
+    pet_species             TEXT DEFAULT 'Chó / Mèo',
+    service_title           TEXT NOT NULL,
+    appointment_date        TEXT NOT NULL,
+    appointment_time        TEXT NOT NULL,
+    hospital_address        TEXT DEFAULT '1A Lê Thị Xuyến, quận Thanh Khuê, Đà Nẵng',
+    hospital_phone          TEXT DEFAULT '0795477302',
+    hospital_hours          TEXT DEFAULT '8h-17h',
+    notes                   TEXT DEFAULT '',
+    status                  TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'confirmed' | 'completed' | 'cancelled'
+    doctor_id               TEXT DEFAULT '',
+    doctor_name             TEXT DEFAULT 'BS. CKII Nguyễn Thị Mai Hương',
+    doctor_pre_diagnosis    TEXT DEFAULT '',
+    severity_level          TEXT DEFAULT 'Chờ bác sĩ tiếp nhận',
+    doctor_advice           TEXT DEFAULT '',
+    payment_status          TEXT NOT NULL DEFAULT 'pending_payment', -- 'pending_payment' | 'paid' | 'expired'
+    payment_amount          NUMERIC DEFAULT 200000,
+    payment_memo            TEXT DEFAULT '',
+    payment_qr_url          TEXT DEFAULT '',
+    payment_qr_expires_at   TIMESTAMPTZ,
+    paid_at                 TIMESTAMPTZ,
+    payment_method          TEXT DEFAULT 'VietQR Online',
+    bank_info               JSONB DEFAULT '{}'::JSONB,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    confirmed_at            TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON public.appointments(user_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_status ON public.appointments(status);
+CREATE INDEX IF NOT EXISTS idx_appointments_payment_status ON public.appointments(payment_status);
+CREATE INDEX IF NOT EXISTS idx_appointments_date ON public.appointments(appointment_date);
+
+-- ============================================================
+-- 7. TẮT ROW LEVEL SECURITY (RLS) ĐỂ APP TRUY XUẤT TỰ DO
 -- ============================================================
 ALTER TABLE IF EXISTS public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.pets DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.diseases DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.diagnosis_records DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.appointments DISABLE ROW LEVEL SECURITY;
+
 

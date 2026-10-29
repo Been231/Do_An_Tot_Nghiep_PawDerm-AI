@@ -245,12 +245,34 @@ class AppointmentService:
         try:
             client = get_supabase_client()
             if client:
-                client.table("appointments").insert({
-                    "user_id": new_item["user_id"],
-                    "pet_name": new_item["pet_name"],
-                    "service_title": new_item["service_title"],
-                    "status": "pending"
-                }).execute()
+                try:
+                    client.table("appointments").insert({
+                        "id": new_item["id"],
+                        "user_id": new_item["user_id"],
+                        "owner_name": new_item["owner_name"],
+                        "phone": new_item["phone"],
+                        "pet_id": new_item["pet_id"],
+                        "pet_name": new_item["pet_name"],
+                        "pet_species": new_item["pet_species"],
+                        "service_title": new_item["service_title"],
+                        "appointment_date": new_item["appointment_date"],
+                        "appointment_time": new_item["appointment_time"],
+                        "status": new_item["status"],
+                        "payment_status": new_item["payment_status"],
+                        "payment_amount": new_item["payment_amount"],
+                        "payment_memo": new_item["payment_memo"],
+                        "payment_qr_url": new_item["payment_qr_url"],
+                        "payment_qr_expires_at": new_item["payment_qr_expires_at"],
+                        "created_at": new_item["created_at"]
+                    }).execute()
+                except Exception as ex_full:
+                    # Fallback lưu các cột cơ bản nếu Supabase chưa chạy migration mới
+                    client.table("appointments").insert({
+                        "user_id": new_item["user_id"],
+                        "pet_name": new_item["pet_name"],
+                        "service_title": new_item["service_title"],
+                        "status": "pending"
+                    }).execute()
         except Exception as e:
             print("Ghi chú: Lưu Supabase fallback sang JSON store:", e)
 
@@ -370,6 +392,19 @@ class AppointmentService:
         target["paid_at"] = datetime.now().isoformat()
         target["payment_method"] = method
         cls._save_data(data)
+
+        # Đồng bộ trạng thái đã thanh toán sang Supabase
+        try:
+            client = get_supabase_client()
+            if client:
+                client.table("appointments").update({
+                    "payment_status": "paid",
+                    "paid_at": target["paid_at"],
+                    "payment_method": method
+                }).eq("id", target["id"]).execute()
+        except Exception as e_sup:
+            pass
+
         return target
 
     @classmethod

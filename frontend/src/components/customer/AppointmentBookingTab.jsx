@@ -304,7 +304,7 @@ export default function AppointmentBookingTab({
 
       {/* 2. BỐ CỤC 2 CỘT: FORM ĐẶT LỊCH (TRÁI) & LỊCH HẸN CỦA BẠN (PHẢI) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: '24px', alignItems: 'start' }}>
-        
+
         {/* CỘT TRÁI: FORM ĐĂNG KÝ (KHÁCH TỰ ĐIỀN) */}
         <div className="card booking-form-card" style={{ padding: '24px', borderRadius: 'var(--radius-lg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -536,13 +536,13 @@ export default function AppointmentBookingTab({
                         background: isFull
                           ? '#f3f4f6'
                           : isSelected
-                          ? 'var(--primary-teal-light)'
-                          : '#ffffff',
+                            ? 'var(--primary-teal-light)'
+                            : '#ffffff',
                         color: isFull
                           ? '#9ca3af'
                           : isSelected
-                          ? 'var(--primary-teal-dark)'
-                          : 'var(--text-body)',
+                            ? 'var(--primary-teal-dark)'
+                            : 'var(--text-body)',
                         cursor: isFull ? 'not-allowed' : 'pointer',
                         opacity: isFull ? 0.55 : 1,
                         transition: 'all 0.15s ease',
@@ -565,10 +565,10 @@ export default function AppointmentBookingTab({
                         color: isFull
                           ? '#dc2626'
                           : isSelected
-                          ? 'var(--primary-teal-dark)'
-                          : available <= 3
-                          ? '#d97706'
-                          : '#059669'
+                            ? 'var(--primary-teal-dark)'
+                            : available <= 3
+                              ? '#d97706'
+                              : '#059669'
                       }}>
                         Còn {available}/12
                       </div>
@@ -578,7 +578,7 @@ export default function AppointmentBookingTab({
               </div>
             </div>
 
-            {/* Ô NHẬP MÔ TẢ & GHI CHÚ (KHÔNG CÒN HỘP MÔ TẢ AI) */}
+            {/* Ô NHẬP MÔ TẢ & GHI CHÚ */}
             <div className="mb-4">
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-main)' }}>
                 Nội dung mô tả & Ghi chú gửi Bác sĩ khám sơ bộ
