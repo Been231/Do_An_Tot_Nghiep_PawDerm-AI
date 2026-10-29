@@ -163,7 +163,7 @@ export default function DoctorPage({ currentUser, onProfileUpdated }) {
           onClick={() => setDoctorActiveTab('appointments')}
         >
           <CalendarCheck size={16} />
-          <span>Lịch Hẹn Khám & Khám Sơ Bộ Khách Hàng</span>
+          <span>Lịch Hẹn Khám</span>
         </button>
         <button
           className={`sub-tab-btn ${doctorActiveTab === 'review_queue' ? 'active' : ''}`}
