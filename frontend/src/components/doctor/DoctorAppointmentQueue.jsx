@@ -207,7 +207,7 @@ export default function DoctorAppointmentQueue({ currentUser }) {
   };
 
   return (
-    <div className="doctor-appointment-queue-wrap animate-fadeIn">
+    <div className="doctor-appointment-queue-wrap">
       {/* 1. HEADER CHÍNH & NÚT LÀM MỚI */}
       <div className="flex-between flex-wrap gap-3 mb-3">
         <div>
@@ -969,11 +969,35 @@ export default function DoctorAppointmentQueue({ currentUser }) {
 
       {/* 5. MODAL KHÁM SƠ BỘ & HỘI CHẨN ĐỐI CHIẾU KẾT QUẢ AI */}
       {showExamModal && selectedAppointment && (
-        <div className="pf-overlay" onClick={() => setShowExamModal(false)}>
+        <div
+          className="pf-overlay"
+          onClick={() => setShowExamModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9998,
+            background: 'rgba(15, 23, 42, 0.68)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
           <div
             className="pf-modal-clean"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '860px', width: '92%', borderRadius: '16px', maxHeight: '90vh', overflowY: 'auto' }}
+            style={{
+              maxWidth: '920px',
+              width: '94%',
+              background: '#ffffff',
+              padding: '24px 28px',
+              borderRadius: '20px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 65px rgba(15, 23, 42, 0.4)',
+              border: '1px solid #e2e8f0'
+            }}
           >
             {/* MODAL HEADER */}
             <div className="flex-between pb-3 mb-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
@@ -1226,7 +1250,17 @@ export default function DoctorAppointmentQueue({ currentUser }) {
         <div
           className="pf-overlay"
           onClick={() => setZoomedImage(null)}
-          style={{ zIndex: 9999, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.88)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px'
+          }}
         >
           <div style={{ position: 'relative', maxWidth: '85vw', maxHeight: '85vh' }} onClick={(e) => e.stopPropagation()}>
             <img
