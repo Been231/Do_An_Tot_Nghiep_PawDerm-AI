@@ -74,19 +74,23 @@ export default function AppointmentBookingTab({
     { title: 'Tái khám & Đánh giá tiến độ hồi phục', price: '150.000đ', desc: 'Đo lường sự mọc lông lại và điều chỉnh đơn thuốc' }
   ];
 
-  // Tự động đính kèm kết quả AI gần nhất nếu có
+  // Tự động đính kèm kết quả AI bệnh lý gần nhất nếu có (từ phiên hiện tại hoặc lịch sử quét AI)
   useEffect(() => {
-    if (recentDiagnosis && !attachedAIDiagnosis) {
+    const diseasedRecord = historyRecords && historyRecords.length > 0
+      ? historyRecords.find(r => r.disease_key !== 'healthy' && !String(r.disease_name_vi || '').toLowerCase().includes('khỏe mạnh')) || historyRecords[0]
+      : null;
+    const sourceDiag = recentDiagnosis || diseasedRecord;
+    if (sourceDiag && !attachedAIDiagnosis) {
       setAttachedAIDiagnosis({
-        ai_diagnosis_id: recentDiagnosis.id || '',
-        ai_disease_name: recentDiagnosis.disease_name_vi || '',
-        ai_confidence: recentDiagnosis.confidence || 0,
-        ai_image_url: recentDiagnosis.image_url || '',
-        ai_probabilities: recentDiagnosis.probabilities || [],
-        ai_severity: recentDiagnosis.severity_level || ''
+        ai_diagnosis_id: sourceDiag.id || '',
+        ai_disease_name: sourceDiag.disease_name_vi || sourceDiag.disease_name || '',
+        ai_confidence: sourceDiag.confidence || 0,
+        ai_image_url: sourceDiag.image_url || '',
+        ai_probabilities: sourceDiag.probabilities || [],
+        ai_severity: sourceDiag.severity_level || sourceDiag.severity || 'Trung bình'
       });
     }
-  }, [recentDiagnosis]);
+  }, [recentDiagnosis, historyRecords]);
 
   // 1. Tải danh sách lịch hẹn của khách hàng
   useEffect(() => {
@@ -279,7 +283,7 @@ export default function AppointmentBookingTab({
   };
 
   return (
-    <div className="appointment-portal-section animate-fadeIn">
+    <div className="appointment-portal-section">
       {/* 1. HERO BANNER: THÔNG TIN BỆNH VIỆN PAWDERM ĐÀ NẴNG */}
       <div
         className="card hospital-hero-banner mb-4"
@@ -608,6 +612,49 @@ export default function AppointmentBookingTab({
                 })}
               </div>
             </div>
+
+            {/* HỒ SƠ CHẨN ĐOÁN AI ĐÍNH KÈM GỬI BÁC SĨ */}
+            {attachedAIDiagnosis && attachedAIDiagnosis.ai_disease_name && (
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                  border: '1.5px solid #7dd3fc',
+                  borderRadius: '12px',
+                  padding: '12px 14px',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                {attachedAIDiagnosis.ai_image_url && (
+                  <img
+                    src={attachedAIDiagnosis.ai_image_url}
+                    alt="Ảnh bệnh tích AI đính kèm"
+                    style={{
+                      width: '54px',
+                      height: '54px',
+                      borderRadius: '10px',
+                      objectFit: 'cover',
+                      border: '2px solid #38bdf8',
+                      flexShrink: 0
+                    }}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Sparkles size={13} />
+                    <span>ĐÃ ĐÍNH KÈM HỒ SƠ QUÉT AI GỬI BÁC SĨ</span>
+                  </div>
+                  <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+                    {attachedAIDiagnosis.ai_disease_name}{' '}
+                    <span style={{ fontSize: '12px', color: '#0284c7' }}>
+                      ({Math.round((attachedAIDiagnosis.ai_confidence <= 1 ? attachedAIDiagnosis.ai_confidence * 100 : attachedAIDiagnosis.ai_confidence) * 10) / 10}% tin cậy)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Ô NHẬP MÔ TẢ & GHI CHÚ */}
             <div className="mb-4">
