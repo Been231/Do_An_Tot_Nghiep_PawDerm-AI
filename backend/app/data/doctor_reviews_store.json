@@ -16,5 +16,14 @@
     "doctor_corrected_disease": "",
     "doctor_notes": "Bác sĩ đã kiểm tra ảnh và đồng ý với nhận định của mô hình AI.",
     "reviewed_at": "2026-10-22T10:31:10.647236"
+  },
+  "case-doc-004": {
+    "record_id": "case-doc-004",
+    "review_status": "agreed",
+    "reviewed_by": "450f4a18-97c6-401b-968e-bc76fe460e1e",
+    "doctor_name": "BS. CKII Nguyễn Thị Mai Hương",
+    "doctor_corrected_disease": "",
+    "doctor_notes": "Hội chẩn trực tiếp tại viện qua lịch hẹn #APT-20261102-002: Đã soi biểu bì thấy mật độ ve Demodex dày đặc. Cần tắm Amitraz pha loãng theo chỉ định, tuyệt đối không dùng Corticoid.",
+    "reviewed_at": "2026-11-02T21:37:19.408053"
   }
 }

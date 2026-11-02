@@ -242,6 +242,12 @@ export default function DiagnosisResult({ diagnosisResult, pet, owner, imageUrl,
             onClick={() => onBookAppointment({
               pet,
               diseaseName: result.disease_name_vi,
+              ai_diagnosis_id: result.id || '',
+              ai_disease_name: result.disease_name_vi,
+              ai_confidence: Number(confidenceVal) || result.confidence || 0,
+              ai_image_url: imageUrl || result.image_url || '',
+              ai_probabilities: result.probabilities || [],
+              ai_severity: result.severity_level || '',
               notes: `Chẩn đoán AI phát hiện nguy cơ: ${result.disease_name_vi} (Độ tin cậy: ${confidenceVal}%). Cần bác sĩ kiểm tra và soi da trực tiếp.`
             })}
           >

@@ -22,10 +22,31 @@ def get_my_appointments(user_id: Optional[str] = Query(None)):
 
 
 @router.get("/doctor")
-def get_doctor_appointments():
-    """Bác sĩ lấy danh sách tất cả các lịch hẹn cần tiếp nhận & khám sơ bộ."""
-    appointments = AppointmentService.get_doctor_appointments()
-    return {"success": True, "appointments": appointments}
+def get_doctor_appointments(
+    date: Optional[str] = Query(None),
+    time_slot: Optional[str] = Query(None),
+    status: Optional[str] = Query(None)
+):
+    """
+    Bác sĩ lấy danh sách lịch hẹn khám theo thứ tự bốc số STT (ai tới trước, ai tới sau).
+    Đồng thời trả về tổng quan hàng đợi (đang gọi ai, ai tiếp theo).
+    """
+    appointments = AppointmentService.get_doctor_appointments(date=date, time_slot=time_slot, status=status)
+    summary = AppointmentService.get_doctor_queue_summary(date=date)
+    return {"success": True, "appointments": appointments, "summary": summary}
+
+
+@router.post("/{appointment_id}/call-patient")
+def call_patient(appointment_id: str):
+    """Bác sĩ gọi bệnh nhân vào phòng khám (chuyển sang trạng thái in_progress)."""
+    updated = AppointmentService.call_patient(appointment_id)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Không tìm thấy lịch hẹn!")
+    return {
+        "success": True,
+        "appointment": updated,
+        "message": f"📢 Đã gọi bệnh nhân số {updated.get('queue_code', 'STT')} ({updated.get('pet_name')}) vào phòng khám!"
+    }
 
 
 @router.get("/admin/transactions")

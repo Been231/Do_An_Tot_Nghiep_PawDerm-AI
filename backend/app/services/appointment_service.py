@@ -1,10 +1,14 @@
 """
-PawDerm AI - Dịch vụ Quản lý Đặt Lịch Khám & Thanh Toán VietQR Tự Động
+PawDerm AI - Dịch vụ Quản lý Đặt Lịch Khám, Bốc Số Thứ Tự (STT) & Thanh Toán VietQR Tự Động
 Quản lý lịch hẹn khám tại Bệnh viện Thú Y PawDerm:
-1. Khách hàng đặt lịch khám (ngày, giờ, dịch vụ, thú cưng).
-2. Tạo mã VietQR thanh toán thời gian thực với hạn 10 phút.
-3. Tự động kiểm tra / xác nhận thanh toán (không cần nhân viên trung gian).
-4. Khám sơ bộ bởi Bác sĩ chuyên khoa & Theo dõi dòng tiền bởi Quản trị viên (Admin).
+1. Khách hàng đặt lịch khám (ngày, giờ, dịch vụ, thú cưng, đính kèm kết quả chẩn đoán AI).
+2. Tự động cấp Số thứ tự bốc số (queue_number / queue_code: STT-01, STT-02...) theo từng ca trực.
+3. Tạo mã VietQR thanh toán thời gian thực với hạn 10 phút.
+4. Bác sĩ thú y trực quan hóa hàng đợi khám bệnh:
+   - Biết chính xác thú cưng nào tới trước, thú cưng nào tới sau theo số thứ tự bốc số.
+   - Hiển thị trực tiếp ảnh tổn thương da và kết quả chẩn đoán AI mà khách hàng đã quét.
+   - Thao tác gọi số khám (in_progress), hội chẩn đối chiếu kết quả AI và hoàn tất ca khám.
+5. Theo dõi dòng tiền bởi Quản trị viên (Admin).
 """
 
 import os
@@ -22,6 +26,15 @@ from app.core.config import (
 )
 
 APPOINTMENTS_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "appointments_store.json")
+
+# Thứ tự ưu tiên sắp xếp 4 ca khám trong ngày
+SLOT_ORDER = {
+    "08:00 - 09:30": 1,
+    "09:30 - 11:00": 2,
+    "14:00 - 15:30": 3,
+    "15:30 - 17:00": 4
+}
+
 
 class AppointmentService:
     HOSPITAL_ADDRESS = "1A Lê Thị Xuyến, quận Thanh Khuê, Đà Nẵng"
@@ -53,12 +66,49 @@ class AppointmentService:
         os.makedirs(os.path.dirname(APPOINTMENTS_FILE), exist_ok=True)
 
     @classmethod
+    def _normalize_item(cls, item: Dict[str, Any], all_items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Chuẩn hóa dữ liệu lịch hẹn, đảm bảo luôn có số thứ tự bốc số STT."""
+        if not item.get("queue_number"):
+            # Tự động gán STT dựa theo thứ tự tạo trong cùng ca khám
+            same_slot = [
+                a for a in all_items
+                if a.get("appointment_date") == item.get("appointment_date")
+                and a.get("appointment_time") == item.get("appointment_time")
+            ]
+            same_slot_sorted = sorted(same_slot, key=lambda x: x.get("created_at") or "")
+            try:
+                idx = same_slot_sorted.index(item) + 1
+            except ValueError:
+                idx = 1
+            item["queue_number"] = idx
+            item["queue_code"] = f"STT-{idx:02d}"
+        elif not item.get("queue_code"):
+            item["queue_code"] = f"STT-{item['queue_number']:02d}"
+
+        # Đảm bảo trường AI luôn tồn tại
+        if "ai_disease_name" not in item:
+            item["ai_disease_name"] = ""
+        if "ai_confidence" not in item:
+            item["ai_confidence"] = 0.0
+        if "ai_image_url" not in item:
+            item["ai_image_url"] = ""
+        if "ai_probabilities" not in item:
+            item["ai_probabilities"] = []
+
+        return item
+
+    @classmethod
     def _load_data(cls) -> List[Dict[str, Any]]:
         cls._ensure_dir()
         if os.path.exists(APPOINTMENTS_FILE):
             try:
                 with open(APPOINTMENTS_FILE, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        # Chuẩn hóa STT cho các bản ghi cũ
+                        for item in data:
+                            cls._normalize_item(item, data)
+                        return data
             except Exception as e:
                 print("Lỗi đọc appointments_store.json:", e)
         return []
@@ -138,11 +188,84 @@ class AppointmentService:
         return matched
 
     @classmethod
-    def get_doctor_appointments(cls) -> List[Dict[str, Any]]:
-        """Lấy toàn bộ danh sách lịch hẹn để Bác sĩ xem và khám sơ bộ."""
+    def get_doctor_appointments(
+        cls,
+        date: Optional[str] = None,
+        time_slot: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Lấy danh sách lịch hẹn để Bác sĩ xem và khám sơ bộ.
+        SẮP XẾP CHUẨN Y KHOA:
+        1. Ngày khám (appointment_date) gần nhất trước.
+        2. Khung giờ khám (appointment_time) theo ca sáng -> ca chiều.
+        3. Thứ tự bốc số STT (queue_number): STT-01 -> STT-02 -> STT-03 (ai tới trước lên trước).
+        """
         data = cls._load_data()
-        data.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        
+        # Lọc theo ngày nếu có
+        if date and date.strip() and date != "all":
+            target_date = date.strip()
+            data = [a for a in data if a.get("appointment_date") == target_date]
+
+        # Lọc theo khung giờ nếu có
+        if time_slot and time_slot.strip() and time_slot != "all":
+            target_slot = time_slot.strip()
+            data = [a for a in data if a.get("appointment_time") == target_slot]
+
+        # Lọc theo trạng thái
+        if status and status.strip() and status != "all":
+            st = status.strip()
+            if st == "paid":
+                data = [a for a in data if a.get("payment_status") == "paid"]
+            else:
+                data = [a for a in data if a.get("status") == st]
+
+        # Thuật toán sắp xếp thứ tự tới trước / tới sau
+        def sort_key(item):
+            d = item.get("appointment_date") or "9999-99-99"
+            slot_idx = SLOT_ORDER.get(item.get("appointment_time"), 99)
+            # Ca đang trong phòng khám (in_progress) ưu tiên hàng đầu trong ca
+            status_weight = 0 if item.get("status") == "in_progress" else (1 if item.get("status") == "pending" else 2)
+            stt = item.get("queue_number") or 999
+            return (d, slot_idx, status_weight, stt, item.get("created_at") or "")
+
+        data.sort(key=sort_key)
         return data
+
+    @classmethod
+    def get_doctor_queue_summary(cls, date: Optional[str] = None) -> Dict[str, Any]:
+        """Thống kê hàng đợi bốc số dành cho Bác sĩ trực phòng khám."""
+        data = cls._load_data()
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        target_date = date.strip() if date and date.strip() and date != "all" else today_str
+
+        # Lọc các ca trong ngày mục tiêu
+        day_items = [a for a in data if a.get("appointment_date") == target_date and a.get("status") != "cancelled"]
+        day_items.sort(key=lambda x: (SLOT_ORDER.get(x.get("appointment_time"), 99), x.get("queue_number", 999)))
+
+        # Ca đang khám trong phòng (in_progress)
+        in_progress_items = [a for a in day_items if a.get("status") == "in_progress"]
+        current_calling = in_progress_items[0] if in_progress_items else None
+
+        # Ca tiếp theo đang chờ đến lượt (pending)
+        pending_items = [a for a in day_items if a.get("status") == "pending"]
+        next_in_line = pending_items[0] if pending_items else None
+
+        total_booked = len(day_items)
+        paid_count = sum(1 for a in day_items if a.get("payment_status") == "paid")
+        completed_count = sum(1 for a in day_items if a.get("status") in ["confirmed", "completed"])
+
+        return {
+            "target_date": target_date,
+            "total_booked": total_booked,
+            "paid_count": paid_count,
+            "waiting_count": len(pending_items),
+            "in_progress_count": len(in_progress_items),
+            "completed_count": completed_count,
+            "current_calling": current_calling,
+            "next_in_line": next_in_line
+        }
 
     @classmethod
     def get_slot_availability(cls, appointment_date: str) -> Dict[str, Any]:
@@ -161,17 +284,19 @@ class AppointmentService:
                 "booked": booked,
                 "max": cls.MAX_SLOT_CAPACITY,
                 "available": available,
-                "is_full": booked >= cls.MAX_SLOT_CAPACITY
+                "is_full": booked >= cls.MAX_SLOT_CAPACITY,
+                "next_queue_number": booked + 1,
+                "next_queue_code": f"STT-{booked + 1:02d}"
             }
         return slots_info
 
     @classmethod
     def create_appointment(cls, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Khách hàng gửi yêu cầu đặt lịch khám tại Bệnh viện PawDerm và khởi tạo phiên thanh toán VietQR 10 phút."""
+        """Khách hàng gửi yêu cầu đặt lịch khám tại Bệnh viện PawDerm và bốc số thứ tự STT."""
         today_str = datetime.now().strftime("%Y-%m-%d")
         app_date = (payload.get("appointment_date") or today_str).strip()
         
-        # 1. Kiểm tra ngày hẹn: Chỉ cho phép đặt ngày hiện tại và tương lai, không cho đặt ngày quá khứ
+        # 1. Kiểm tra ngày hẹn: Chỉ cho phép đặt ngày hiện tại và tương lai
         if app_date < today_str:
             raise ValueError(f"Ngày hẹn khám ({app_date}) không thể là ngày trong quá khứ! Vui lòng chọn từ ngày hôm nay ({today_str}) trở đi.")
 
@@ -191,6 +316,16 @@ class AppointmentService:
                 "Vui lòng chọn khung giờ khác hoặc ngày khác!"
             )
 
+        # 3. Tính số thứ tự bốc số (Queue Number) tăng dần trong khung giờ đó
+        max_stt = 0
+        for a in data:
+            if a.get("appointment_date") == app_date and a.get("appointment_time") == app_time:
+                q_num = a.get("queue_number")
+                if isinstance(q_num, int) and q_num > max_stt:
+                    max_stt = q_num
+        queue_number = max_stt + 1
+        queue_code = f"STT-{queue_number:02d}"
+
         new_id = f"APT-{datetime.now().strftime('%Y%m%d')}-{len(data)+1:03d}"
         service_title = payload.get("service_title") or "Khám da liễu chuyên sâu & Soi tươi vi nấm"
         payment_amount = int(payload.get("payment_amount") or cls.SERVICE_PRICING.get(service_title, cls.DEFAULT_SERVICE_PRICE))
@@ -200,8 +335,34 @@ class AppointmentService:
         expires_at = datetime.now() + timedelta(minutes=PAYMENT_TIMEOUT_MINUTES)
         vietqr_url = cls.generate_vietqr_url(payment_amount, payment_memo)
 
+        # 4. Thu thập dữ liệu chẩn đoán AI gắn kèm (nếu khách chuyển từ quét AI sang)
+        ai_diag_id = str(payload.get("ai_diagnosis_id") or payload.get("diagnosis_id") or "").strip()
+        ai_disease_name = str(payload.get("ai_disease_name") or payload.get("disease_name") or "").strip()
+        ai_confidence = float(payload.get("ai_confidence") or 0.0)
+        ai_image_url = str(payload.get("ai_image_url") or payload.get("image_url") or "").strip()
+        ai_probabilities = payload.get("ai_probabilities") or []
+        ai_severity = str(payload.get("ai_severity") or payload.get("severity_level") or "").strip()
+
+        # Nếu chưa có nhưng có pet_id, thử tìm bệnh án AI gần nhất của bé
+        if not ai_disease_name and payload.get("pet_id"):
+            try:
+                from app.database.supabase_service import SupabaseService
+                hist = SupabaseService.get_diagnosis_history(pet_id=payload.get("pet_id"))
+                if hist and len(hist) > 0:
+                    latest = hist[0]
+                    ai_diag_id = str(latest.get("id") or "")
+                    ai_disease_name = str(latest.get("disease_name_vi") or "")
+                    ai_confidence = float(latest.get("confidence") or 0.0)
+                    ai_image_url = str(latest.get("image_url") or "")
+                    ai_probabilities = latest.get("probabilities") or []
+                    ai_severity = str(latest.get("severity") or "")
+            except Exception:
+                pass
+
         new_item = {
             "id": new_id,
+            "queue_number": queue_number,
+            "queue_code": queue_code,
             "user_id": payload.get("user_id") or str(uuid.uuid4()),
             "owner_name": payload.get("owner_name") or "Khách hàng",
             "phone": (payload.get("phone") or "").strip(),
@@ -215,14 +376,25 @@ class AppointmentService:
             "hospital_phone": cls.HOSPITAL_PHONE,
             "hospital_hours": cls.HOSPITAL_HOURS,
             "notes": (payload.get("notes") or "").strip(),
-            "status": "pending",
+            "status": "pending",  # pending | in_progress | confirmed | completed | cancelled
             "doctor_id": payload.get("doctor_id") or "",
             "doctor_name": payload.get("doctor_name") or "BS. CKII Nguyễn Thị Mai Hương",
             "doctor_pre_diagnosis": "",
             "severity_level": "Chờ bác sĩ tiếp nhận",
             "doctor_advice": "",
+            "clinical_tests": [],
+            "doctor_prescription_notes": "",
             "created_at": datetime.now().isoformat(),
             "confirmed_at": None,
+            "called_at": None,
+            "completed_at": None,
+            # Kết quả AI chẩn đoán đính kèm
+            "ai_diagnosis_id": ai_diag_id,
+            "ai_disease_name": ai_disease_name,
+            "ai_confidence": ai_confidence,
+            "ai_image_url": ai_image_url,
+            "ai_probabilities": ai_probabilities,
+            "ai_severity": ai_severity,
             # Các trường thanh toán trực tuyến VietQR
             "payment_status": "pending_payment",  # pending_payment | paid | expired
             "payment_amount": payment_amount,
@@ -251,37 +423,46 @@ class AppointmentService:
                 except Exception:
                     sup_user_id = "8cb7a542-dc84-4ad1-97b5-94a2a72e24d7"
 
+                apt_sup_payload = {
+                    "user_id": sup_user_id,
+                    "owner_name": new_item["owner_name"],
+                    "phone": new_item["phone"],
+                    "pet_name": new_item["pet_name"],
+                    "pet_species": new_item["pet_species"],
+                    "service_title": new_item["service_title"],
+                    "appointment_date": new_item["appointment_date"],
+                    "appointment_time": new_item["appointment_time"],
+                    "status": new_item["status"],
+                    "payment_status": new_item["payment_status"],
+                    "payment_amount": new_item["payment_amount"],
+                    "payment_memo": new_item["payment_memo"],
+                    "payment_qr_url": new_item["payment_qr_url"],
+                    "payment_qr_expires_at": new_item["payment_qr_expires_at"],
+                    "created_at": new_item["created_at"]
+                }
+                # Thử thêm các cột mở rộng nếu schema Supabase đã có
+                for col in ["queue_number", "queue_code", "ai_disease_name", "ai_confidence", "ai_image_url"]:
+                    if col in new_item:
+                        apt_sup_payload[col] = new_item[col]
+
                 try:
-                    apt_sup_payload = {
-                        "user_id": sup_user_id,
-                        "owner_name": new_item["owner_name"],
-                        "phone": new_item["phone"],
-                        "pet_name": new_item["pet_name"],
-                        "pet_species": new_item["pet_species"],
-                        "service_title": new_item["service_title"],
-                        "appointment_date": new_item["appointment_date"],
-                        "appointment_time": new_item["appointment_time"],
-                        "status": new_item["status"],
-                        "payment_status": new_item["payment_status"],
-                        "payment_amount": new_item["payment_amount"],
-                        "payment_memo": new_item["payment_memo"],
-                        "payment_qr_url": new_item["payment_qr_url"],
-                        "payment_qr_expires_at": new_item["payment_qr_expires_at"],
-                        "created_at": new_item["created_at"]
-                    }
                     sup_res = client.table("appointments").insert(apt_sup_payload).execute()
                     if sup_res.data:
                         new_item["supabase_id"] = sup_res.data[0].get("id")
-                except Exception as ex_full:
+                except Exception:
                     # Fallback lưu các cột cơ bản vào bảng appointments hiện có trên Supabase
-                    sup_res = client.table("appointments").insert({
-                        "user_id": sup_user_id,
-                        "pet_name": new_item["pet_name"],
-                        "service_title": new_item["service_title"],
-                        "status": "pending"
-                    }).execute()
-                    if sup_res.data:
-                        new_item["supabase_id"] = sup_res.data[0].get("id")
+                    try:
+                        basic_payload = {
+                            "user_id": sup_user_id,
+                            "pet_name": new_item["pet_name"],
+                            "service_title": new_item["service_title"],
+                            "status": "pending"
+                        }
+                        sup_res = client.table("appointments").insert(basic_payload).execute()
+                        if sup_res.data:
+                            new_item["supabase_id"] = sup_res.data[0].get("id")
+                    except Exception:
+                        pass
         except Exception as e:
             print("Ghi chú: Lưu Supabase fallback sang JSON store:", e)
 
@@ -327,6 +508,8 @@ class AppointmentService:
 
         return {
             "appointment_id": appointment_id,
+            "queue_number": target.get("queue_number", 1),
+            "queue_code": target.get("queue_code", "STT-01"),
             "payment_status": current_payment_status,
             "status": target.get("status"),
             "remaining_seconds": remaining_seconds,
@@ -415,10 +598,97 @@ class AppointmentService:
                     client.table("appointments").update(up_payload).eq("id", target["supabase_id"]).execute()
                 elif target.get("payment_memo"):
                     client.table("appointments").update(up_payload).eq("payment_memo", target["payment_memo"]).execute()
-        except Exception as e_sup:
+        except Exception:
             pass
 
         return target
+
+    @classmethod
+    def call_patient(cls, appointment_id: str) -> Optional[Dict[str, Any]]:
+        """Bác sĩ bấm gọi bệnh nhân vào phòng khám (chuyển sang in_progress)."""
+        data = cls._load_data()
+        target = None
+        for item in data:
+            if item.get("id") == appointment_id:
+                target = item
+                break
+        if not target:
+            return None
+
+        target["status"] = "in_progress"
+        target["called_at"] = datetime.now().isoformat()
+        cls._save_data(data)
+        return target
+
+    @classmethod
+    def submit_pre_diagnosis(cls, appointment_id: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Bác sĩ khám sơ bộ & hội chẩn đối chiếu kết quả chẩn đoán AI:
+        - Lưu chẩn đoán lâm sàng của Bác sĩ (doctor_pre_diagnosis).
+        - Lưu mức độ nghiêm trọng (severity_level).
+        - Lưu các chỉ định xét nghiệm cận lâm sàng (clinical_tests).
+        - Lưu lời dặn dò y tế cho chủ nuôi (doctor_advice).
+        - Tự động đồng bộ cập nhật sang diagnosis_records nếu ca hẹn có gắn kết quả AI!
+        """
+        data = cls._load_data()
+        target = None
+        for item in data:
+            if item.get("id") == appointment_id:
+                target = item
+                break
+
+        if not target:
+            return None
+
+        now_iso = datetime.now().isoformat()
+        target["doctor_id"] = payload.get("doctor_id") or target.get("doctor_id") or "doc-001"
+        target["doctor_name"] = payload.get("doctor_name") or target.get("doctor_name") or "BS. CKII Nguyễn Thị Mai Hương"
+        target["doctor_pre_diagnosis"] = payload.get("doctor_pre_diagnosis") or target.get("doctor_pre_diagnosis") or "Viêm da tiếp xúc"
+        target["severity_level"] = payload.get("severity_level") or "Trung bình - Cần đến viện soi vi nấm"
+        target["doctor_advice"] = payload.get("doctor_advice") or "Đeo loa chống liếm và đưa bé đến phòng khám đúng giờ hẹn."
+        target["clinical_tests"] = payload.get("clinical_tests") or []
+        target["doctor_prescription_notes"] = payload.get("doctor_prescription_notes") or ""
+        target["review_status"] = payload.get("review_status") or "agreed"  # 'agreed' | 'corrected'
+        target["status"] = payload.get("status") or "confirmed"
+        target["confirmed_at"] = now_iso
+
+        cls._save_data(data)
+
+        # Đồng bộ sang Supabase / doctor_reviews_store nếu có liên kết AI
+        ai_rec_id = target.get("ai_diagnosis_id")
+        if ai_rec_id:
+            try:
+                from app.database.supabase_service import SupabaseService
+                rev_status = payload.get("review_status") or "agreed"
+                corrected_dis = target["doctor_pre_diagnosis"] if rev_status == "corrected" else ""
+                SupabaseService.submit_doctor_review(
+                    record_id=ai_rec_id,
+                    doctor_id=target["doctor_id"],
+                    doctor_name=target["doctor_name"],
+                    review_status=rev_status,
+                    corrected_disease=corrected_dis,
+                    notes=f"Hội chẩn trực tiếp tại viện qua lịch hẹn #{target.get('id')}: {target.get('doctor_advice')}"
+                )
+            except Exception as e_rev:
+                print("Lỗi đồng bộ sang diagnosis_records:", e_rev)
+
+        return target
+
+    @classmethod
+    def update_status(cls, appointment_id: str, new_status: str) -> bool:
+        """Cập nhật trạng thái lịch hẹn: pending | in_progress | confirmed | completed | cancelled."""
+        data = cls._load_data()
+        for item in data:
+            if item.get("id") == appointment_id:
+                item["status"] = new_status
+                now_iso = datetime.now().isoformat()
+                if new_status == "in_progress":
+                    item["called_at"] = now_iso
+                elif new_status == "completed":
+                    item["completed_at"] = now_iso
+                cls._save_data(data)
+                return True
+        return False
 
     @classmethod
     def get_admin_transactions(cls) -> Dict[str, Any]:
@@ -439,6 +709,7 @@ class AppointmentService:
         for item in sorted_data:
             transactions.append({
                 "appointment_id": item.get("id"),
+                "queue_code": item.get("queue_code", "STT-01"),
                 "owner_name": item.get("owner_name"),
                 "phone": item.get("phone"),
                 "pet_name": item.get("pet_name"),
@@ -468,40 +739,3 @@ class AppointmentService:
             },
             "transactions": transactions
         }
-
-    @classmethod
-    def submit_pre_diagnosis(cls, appointment_id: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Bác sĩ khám sơ bộ, đưa ra dự đoán bệnh và lời dặn hướng dẫn trước khi khách đến viện."""
-        data = cls._load_data()
-        target = None
-        for item in data:
-            if item.get("id") == appointment_id:
-                target = item
-                break
-
-        if not target:
-            return None
-
-        target["doctor_id"] = payload.get("doctor_id") or target.get("doctor_id") or "doc-001"
-        target["doctor_name"] = payload.get("doctor_name") or target.get("doctor_name") or "BS. CKII Nguyễn Thị Mai Hương"
-        target["doctor_pre_diagnosis"] = payload.get("doctor_pre_diagnosis") or target.get("doctor_pre_diagnosis") or "Viêm da tiếp xúc"
-        target["severity_level"] = payload.get("severity_level") or "Cần theo dõi sát"
-        target["doctor_advice"] = payload.get("doctor_advice") or "Đeo loa chống liếm và đưa bé đến phòng khám đúng giờ hẹn."
-        target["status"] = payload.get("status") or "confirmed"
-        target["confirmed_at"] = datetime.now().isoformat()
-
-        cls._save_data(data)
-        return target
-
-    @classmethod
-    def update_status(cls, appointment_id: str, new_status: str) -> bool:
-        """Cập nhật trạng thái lịch hẹn: confirmed | completed | cancelled."""
-        data = cls._load_data()
-        for item in data:
-            if item.get("id") == appointment_id:
-                item["status"] = new_status
-                if new_status == "completed":
-                    item["completed_at"] = datetime.now().isoformat()
-                cls._save_data(data)
-                return True
-        return False

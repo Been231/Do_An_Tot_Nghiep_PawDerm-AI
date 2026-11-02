@@ -61,6 +61,7 @@ export default function AppointmentBookingTab({
   const [serviceTitle, setServiceTitle] = useState('Khám da liễu chuyên sâu & Soi tươi vi nấm');
   const [doctorName, setDoctorName] = useState('BS. CKII Nguyễn Thị Mai Hương');
   const [notes, setNotes] = useState('');
+  const [attachedAIDiagnosis, setAttachedAIDiagnosis] = useState(null);
 
   // Tình trạng 4 khung giờ trong ngày (đã đặt / còn trống)
   const [slotAvailability, setSlotAvailability] = useState({});
@@ -72,6 +73,20 @@ export default function AppointmentBookingTab({
     { title: 'Cấp cứu viêm da lở loét & Dị ứng cấp', price: '300.000đ', desc: 'Xử lý sát khuẩn khẩn cấp, ngăn chặn bội nhiễm lan rộng' },
     { title: 'Tái khám & Đánh giá tiến độ hồi phục', price: '150.000đ', desc: 'Đo lường sự mọc lông lại và điều chỉnh đơn thuốc' }
   ];
+
+  // Tự động đính kèm kết quả AI gần nhất nếu có
+  useEffect(() => {
+    if (recentDiagnosis && !attachedAIDiagnosis) {
+      setAttachedAIDiagnosis({
+        ai_diagnosis_id: recentDiagnosis.id || '',
+        ai_disease_name: recentDiagnosis.disease_name_vi || '',
+        ai_confidence: recentDiagnosis.confidence || 0,
+        ai_image_url: recentDiagnosis.image_url || '',
+        ai_probabilities: recentDiagnosis.probabilities || [],
+        ai_severity: recentDiagnosis.severity_level || ''
+      });
+    }
+  }, [recentDiagnosis]);
 
   // 1. Tải danh sách lịch hẹn của khách hàng
   useEffect(() => {
@@ -105,6 +120,16 @@ export default function AppointmentBookingTab({
         setNotes(initialBookingData.notes);
       }
       setServiceTitle('Khám sơ bộ & Hội chẩn sau kết quả AI');
+      if (initialBookingData.ai_disease_name || initialBookingData.diseaseName) {
+        setAttachedAIDiagnosis({
+          ai_diagnosis_id: initialBookingData.ai_diagnosis_id || '',
+          ai_disease_name: initialBookingData.ai_disease_name || initialBookingData.diseaseName || '',
+          ai_confidence: initialBookingData.ai_confidence || 0,
+          ai_image_url: initialBookingData.ai_image_url || '',
+          ai_probabilities: initialBookingData.ai_probabilities || [],
+          ai_severity: initialBookingData.ai_severity || ''
+        });
+      }
     }
   }, [initialBookingData]);
 
@@ -218,7 +243,13 @@ export default function AppointmentBookingTab({
         appointment_date: appointmentDate,
         appointment_time: appointmentTime,
         doctor_name: doctorName,
-        notes: notes.trim()
+        notes: notes.trim(),
+        ai_diagnosis_id: attachedAIDiagnosis?.ai_diagnosis_id || '',
+        ai_disease_name: attachedAIDiagnosis?.ai_disease_name || '',
+        ai_confidence: attachedAIDiagnosis?.ai_confidence || 0,
+        ai_image_url: attachedAIDiagnosis?.ai_image_url || '',
+        ai_probabilities: attachedAIDiagnosis?.ai_probabilities || [],
+        ai_severity: attachedAIDiagnosis?.ai_severity || ''
       };
 
       const res = await appointmentService.createAppointment(payload);
@@ -661,6 +692,20 @@ export default function AppointmentBookingTab({
                   {/* HEADER THẺ LỊCH HẸN & THANH TOÁN VIETQR */}
                   <div className="flex-between mb-2 flex-wrap gap-2">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        fontSize: '12.5px',
+                        fontWeight: '900',
+                        background: '#eff6ff',
+                        color: '#1d4ed8',
+                        border: '1.5px solid #bfdbfe',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        🎟️ {apt.queue_code || `STT-${String(apt.queue_number || 1).padStart(2, '0')}`}
+                      </span>
                       <span style={{ fontSize: '18px' }}>🐶</span>
                       <strong>{apt.pet_name}</strong>
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>({apt.pet_species})</span>
@@ -757,6 +802,30 @@ export default function AppointmentBookingTab({
                   <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--primary-orange-dark)', marginBottom: '6px' }}>
                     {apt.service_title}
                   </div>
+
+                  {apt.ai_disease_name && (
+                    <div style={{
+                      background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(234, 88, 12, 0.05) 100%)',
+                      border: '1px solid #bae6fd',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      fontSize: '12px',
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      {apt.ai_image_url ? (
+                        <img src={apt.ai_image_url} alt="Ảnh AI" style={{ width: '36px', height: '36px', borderRadius: '6px', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '16px' }}>🔬</span>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ color: '#0284c7', fontWeight: '800' }}>✓ Đã đính kèm kết quả quét AI: </span>
+                        <strong>{apt.ai_disease_name}</strong> {apt.ai_confidence > 0 ? `(${apt.ai_confidence}%)` : ''}
+                      </div>
+                    </div>
+                  )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '10px' }}>
                     <div>📅 Ngày khám: <strong style={{ color: 'var(--text-main)' }}>{apt.appointment_date}</strong></div>

@@ -18,13 +18,33 @@ export const appointmentService = {
   },
 
   /**
-   * Bác sĩ lấy toàn bộ lịch hẹn để khám sơ bộ
+   * Bác sĩ lấy danh sách lịch hẹn khám theo thứ tự bốc số STT kèm tổng quan hàng đợi
    */
-  async getDoctorAppointments() {
-    const res = await fetch(`${API_BASE_URL}/appointments/doctor`);
+  async getDoctorAppointments(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.date) params.append('date', filters.date);
+    if (filters.time_slot) params.append('time_slot', filters.time_slot);
+    if (filters.status) params.append('status', filters.status);
+    const queryString = params.toString();
+    const url = queryString ? `${API_BASE_URL}/appointments/doctor?${queryString}` : `${API_BASE_URL}/appointments/doctor`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Không thể tải danh sách lịch hẹn bác sĩ');
     const data = await res.json();
-    return data.appointments || [];
+    return {
+      appointments: data.appointments || [],
+      summary: data.summary || {}
+    };
+  },
+
+  /**
+   * Bác sĩ gọi bệnh nhân vào phòng khám theo số thứ tự (in_progress)
+   */
+  async callPatient(appointmentId) {
+    const res = await fetch(`${API_BASE_URL}/appointments/${appointmentId}/call-patient`, {
+      method: 'POST'
+    });
+    if (!res.ok) throw new Error('Không thể gọi bệnh nhân vào phòng khám');
+    return await res.json();
   },
 
   /**

@@ -285,8 +285,53 @@ CREATE TABLE IF NOT EXISTS public.appointments (
     payment_method          TEXT DEFAULT 'VietQR Online',
     bank_info               JSONB DEFAULT '{}'::JSONB,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    confirmed_at            TIMESTAMPTZ
+    confirmed_at            TIMESTAMPTZ,
+    called_at               TIMESTAMPTZ,
+    completed_at            TIMESTAMPTZ,
+    queue_number            INT DEFAULT 1,
+    queue_code              TEXT DEFAULT 'STT-01',
+    ai_diagnosis_id         TEXT DEFAULT '',
+    ai_disease_name         TEXT DEFAULT '',
+    ai_confidence           FLOAT8 DEFAULT 0.0,
+    ai_image_url            TEXT DEFAULT '',
+    ai_probabilities        JSONB DEFAULT '[]'::JSONB,
+    ai_severity             TEXT DEFAULT ''
 );
+
+-- Thêm các cột mới nếu bảng appointments đã tồn tại từ trước
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='queue_number') THEN
+        ALTER TABLE public.appointments ADD COLUMN queue_number INT DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='queue_code') THEN
+        ALTER TABLE public.appointments ADD COLUMN queue_code TEXT DEFAULT 'STT-01';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='ai_diagnosis_id') THEN
+        ALTER TABLE public.appointments ADD COLUMN ai_diagnosis_id TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='ai_disease_name') THEN
+        ALTER TABLE public.appointments ADD COLUMN ai_disease_name TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='ai_confidence') THEN
+        ALTER TABLE public.appointments ADD COLUMN ai_confidence FLOAT8 DEFAULT 0.0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='ai_image_url') THEN
+        ALTER TABLE public.appointments ADD COLUMN ai_image_url TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='ai_probabilities') THEN
+        ALTER TABLE public.appointments ADD COLUMN ai_probabilities JSONB DEFAULT '[]'::JSONB;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='ai_severity') THEN
+        ALTER TABLE public.appointments ADD COLUMN ai_severity TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='called_at') THEN
+        ALTER TABLE public.appointments ADD COLUMN called_at TIMESTAMPTZ;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='appointments' AND column_name='completed_at') THEN
+        ALTER TABLE public.appointments ADD COLUMN completed_at TIMESTAMPTZ;
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON public.appointments(user_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_status ON public.appointments(status);
